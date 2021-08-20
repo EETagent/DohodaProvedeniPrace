@@ -1,21 +1,25 @@
-<h1 class="rich-diff-level-zero">DohodaProvedeniPrace - Okamžité vytvoření DPP pro SSPŠ</h1>
+<h1 class="rich-diff-level-zero">Dohoda o provedení práce - Okamžité vytvoření DPP pro SSPŠ</h1>
 
-Jednoduchý terminálový program a knihovna pro vytváření SSPŠ výkazů práce
+Jednoduchý terminálový program a knihovna pro tvorbu výkazů práce.
+Vytvořená dohoda je totožná a kompatibilní s DPP užívanými na Smíchovské střední průmyslové škole.
 
-[![C](https://img.shields.io/badge/lang-c-yellow.svg)]()
+[![C](https://img.shields.io/badge/Jazyk-C-yellow.svg)]()
+[![C](https://img.shields.io/badge/DPP-SSPŠ-blue.svg)]()
+[![C](https://img.shields.io/badge/PDF-red.svg)]()
+
 
 ![Otevřený PDF dokument](.github/img/dohoda.png?raw=true)
 
 ## Použití
 
-Program vygerenuje PDF na základě poskytnuté TOML konfigurace z stdin a uloží ho do aktuální složky.
-Název výsledného souboru je kombinace prefixu DPP_ a přijmení zaměstnance
+Program vytvoří PDF na základě poskytnuté [TOML](https://toml.io/en/) konfigurace z `stdin` (Možno přesměrovat obsah souboru viz. níže) a uloží ho do aktuální složky.
+Název výsledného souboru je kombinace prefixu DPP_ a přijmení zaměstnance (Pokud je uvedeno).
 
 ```bash
 dohoda_ssps < konfigurace.toml
 ```
 
-S přepínačem ```--``` podporuje program vypsání PDF souboru do stdout, tento výstup je tedy možné přesměrovat do libovolného souboru
+S přepínačem `--` podporuje program vypsání PDF souboru do `stdout`, tento výstup je tedy možné přesměrovat do libovolného souboru.
 
 ```bash
 dohoda_ssps -- < konfigurace.toml > ../mojedohoda.pdf
@@ -60,6 +64,7 @@ cinnost = "Poslední testovací blok"
 hodiny = "2"
 poznamka = ""
 ```
+Další příklady v toml/
 
 ## Kompilace
 
@@ -85,7 +90,7 @@ ninja
 
 ## Testy
 
-Součástí projektu jsou i zabudované testy
+Součástí projektu jsou i zabudované testy:
 
 - `PDF_SAME_HASH_TEST` -> Zda je výstup PDF totožný k jeho TOML konfiguraci
 - `PDF_SAME_HASH_TEST2` -> Zda je výstup PDF totožný k jeho TOML konfiguraci větší než 15 položek
