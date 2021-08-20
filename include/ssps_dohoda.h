@@ -16,6 +16,8 @@ typedef HPDF_Doc SSPS_DOHODA_PDF;
 typedef struct SSPS_DOHODA_Konfigurace {
     // Název dohody o provedení práce
     char nazev[100];
+    // V jakém městě byla dohoda podepsána
+    char kde[50];
     // Jméno zaměstnance
     char jmeno[80];
     // Rodné číslo zaměstnance

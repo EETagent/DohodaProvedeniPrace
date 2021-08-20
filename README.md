@@ -4,13 +4,11 @@ Jednoduchý terminálový program a knihovna pro vytváření SSPŠ výkazů pr�
 
 [![C](https://img.shields.io/badge/lang-c-yellow.svg)]()
 
-
-
 ![Otevřený PDF dokument](.github/img/dohoda.png?raw=true)
 
 ## Použití
 
-Program vygerenuje PDF na základě poskytnuté TOML konfigurace z stdin a uloží ho do aktuální složky
+Program vygerenuje PDF na základě poskytnuté TOML konfigurace z stdin a uloží ho do aktuální složky.
 Název výsledného souboru je kombinace prefixu DPP_ a přijmení zaměstnance
 
 ```bash
@@ -28,6 +26,7 @@ dohoda_ssps -- < konfigurace.toml > ../mojedohoda.pdf
 ```toml
 [dohoda]
 nazev = "Program na tovrbu dohod o provedení práce"
+kde = "V Praze"
 
 [zamestnanec]
 jmeno = "Franta Novák"
@@ -88,6 +87,10 @@ ninja
 
 Součástí projektu jsou i zabudované testy
 
+- `PDF_SAME_HASH_TEST` -> Zda je výstup PDF totožný k jeho TOML konfiguraci
+- `PDF_SAME_HASH_TEST2` -> Zda je výstup PDF totožný k jeho TOML konfiguraci větší než 15 položek
+- `PDF_SIZE_TEST` -> Zda je výsledné PDF menší než 1 MB
+
 ```bash
 ninja test
 ```
@@ -98,5 +101,3 @@ ninja test
 - [ ] **Vícestránkový dokument**
 - [ ] Optimalizace kódu a dokumentace
 - [ ] **CGI interface a webový frontend**
-
-

@@ -1,5 +1,6 @@
 [dohoda]
 nazev = "Program na tovrbu dohod o provedení práce"
+kde = "V Liberci"
 
 [zamestnanec]
 jmeno = "Franta Novák"

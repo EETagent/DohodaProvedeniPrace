@@ -94,6 +94,10 @@ int SSPS_DOHODA_Konfigurace_TOML(FILE *vstup, SSPS_DOHODA_Konfigurace *konfigura
     toml_datum_t nazev_hodnota = toml_string_in(dohoda_tabulka, "nazev");
     if (!nazev_hodnota.ok)
         toml_error_handler( "Položká nazev = nenalezena");
+    // Hodnota kde v části [dohoda]
+    toml_datum_t kde_hodnota = toml_string_in(dohoda_tabulka, "kde");
+    if (!kde_hodnota.ok)
+        toml_error_handler( "Položká kde = nenalezena");
 
     // Hodnoty v části [zamestnanec]
     // zamestnanec_polozky[0] = jmeno
@@ -139,8 +143,10 @@ int SSPS_DOHODA_Konfigurace_TOML(FILE *vstup, SSPS_DOHODA_Konfigurace *konfigura
     SSPS_DOHODA_Konfigurace konf;
     // Počet všech vytvořených položek
     konf.len = prace_velikost;
-    // Údaje o zaměstnanci
+    // Údaje o dohodě
     strncpy(konf.nazev, nazev_hodnota.u.s, sizeof(konf.nazev));
+    strncpy(konf.kde, kde_hodnota.u.s, sizeof(konf.kde));
+    // Údaje o zaměstnanci
     strncpy(konf.jmeno, zamestnanec_polozky[0].u.s, sizeof(konf.jmeno));
     strncpy(konf.rodne_cislo, zamestnanec_polozky[1].u.s, sizeof(konf.rodne_cislo));
     strncpy(konf.banka, zamestnanec_polozky[2].u.s, sizeof(konf.banka));
@@ -157,6 +163,7 @@ int SSPS_DOHODA_Konfigurace_TOML(FILE *vstup, SSPS_DOHODA_Konfigurace *konfigura
 
     // Vyčištění paměti zabrané stringy ve struktuře
     free(nazev_hodnota.u.s);
+    free(kde_hodnota.u.s);
     for (int i = 0; i < 6; i++) {
         free(zamestnanec_polozky[i].u.s);
     }
@@ -258,7 +265,8 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc 
 
     // Podpis zaměstnance, neměnný
     HPDF_Page_SetFontAndSize (pdf_strana, pismo_regular, FONT_NORMALNI);
-    HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight (pdf_strana) - 680, "V Liberci dne");
+    // V jakém městě byla dohoda podepsána
+    SSPS_Page_AddPopisek(pdf_strana, " dne", toml_konfigurace.kde, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight (pdf_strana) - 680);
     HPDF_Page_AddText(pdf_strana, PRAVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight (pdf_strana) - 680, "Podpis zaměstnance: ...............................");
     // Podpis ředitele školy, neměnný
     HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight (pdf_strana) - 730, "Schválení ředitelem školy");
