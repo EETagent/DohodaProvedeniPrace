@@ -59,7 +59,7 @@ typedef enum {
  * Generický wrapper pro SSPS_DOHODA_Konfigurace_TOML
  * Přes C11 funkci _Generic rozezná typ vstupu a zvolí správný SSPS_DOHODA_VSTUP_TYP
  */
-#define SSPS_DOHODA_Konfigurace_TOML_Generic(vstup, konfigurace_in) SSPS_DOHODA_Konfigurace_TOML(vstup, konfigurace_in, _Generic((vstup), FILE*: SOUBOR, char*: SSPS_DOHODA_VSTUP_TYP))
+#define SSPS_DOHODA_Konfigurace_TOML_Generic(vstup, konfigurace_in) SSPS_DOHODA_Konfigurace_TOML(vstup, konfigurace_in, _Generic((vstup), FILE*: SOUBOR, char*: SSPS_DOHODA_VSTUP_TYP, default: 3))
 
 /*
  * Wrapper pro SSPS_DOHODA_Konfigurace_TOML
