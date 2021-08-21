@@ -69,8 +69,7 @@ int main(void) {
 
     SSPS_DOHODA_Konfigurace toml_konfigurace;
     SSPS_DOHODA_PDF pdf;
-
-    if (SSPS_DOHODA_Konfigurace_TOML(toml_soubor, &toml_konfigurace) == 1)
+    if (SSPS_DOHODA_Konfigurace_TOML(toml_soubor, &toml_konfigurace, SOUBOR) == 1)
         return 1;
     fclose(toml_soubor);
 
@@ -78,8 +77,8 @@ int main(void) {
         return 1;
 
 
-    HPDF_SaveToStream (pdf);
-    HPDF_ResetStream (pdf);
+    HPDF_SaveToStream(pdf);
+    HPDF_ResetStream(pdf);
 
     // Velikost PDF v bytech
     HPDF_UINT32 pdf_velikost = HPDF_GetStreamSize(pdf);

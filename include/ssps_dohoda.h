@@ -1,3 +1,6 @@
+/*
+ * Český alias pro HPDF_Doc
+ */
 typedef HPDF_Doc SSPS_DOHODA_PDF;
 
 /*
@@ -45,11 +48,35 @@ typedef struct SSPS_DOHODA_Konfigurace {
     unsigned int len;
 } SSPS_DOHODA_Konfigurace;
 
+/*
+ * Typ vstupu do funkce SSPS_DOHODA_Konfigurace_TOML
+ */
+typedef enum {
+    SOUBOR, STRING
+} SSPS_DOHODA_VSTUP_TYP;
+
+/*
+ * Generický wrapper pro SSPS_DOHODA_Konfigurace_TOML
+ * Přes C11 funkci _Generic rozezná typ vstupu a zvolí správný SSPS_DOHODA_VSTUP_TYP
+ */
+#define SSPS_DOHODA_Konfigurace_TOML_Generic(vstup, konfigurace_in) SSPS_DOHODA_Konfigurace_TOML(vstup, konfigurace_in, _Generic((vstup), FILE*: SOUBOR, char*: SSPS_DOHODA_VSTUP_TYP))
+
+/*
+ * Wrapper pro SSPS_DOHODA_Konfigurace_TOML
+ * Pro vstup typu FILE*
+ */
+#define SSPS_DOHODA_Konfigurace_TOML_Soubor(vstup, konfigurace_in) SSPS_DOHODA_Konfigurace_TOML(vstup, konfigurace_in, SOUBOR)
+
+/*
+ * Wrapper pro SSPS_DOHODA_Konfigurace_TOML
+ * Pro vstup typu char*
+ */
+#define SSPS_DOHODA_Konfigurace_TOML_String(vstup, konfigurace_in) SSPS_DOHODA_Konfigurace_TOML(vstup, konfigurace_in, STRING)
 
 /*
  * Konfigurace dokumentu přes TOML, výstup uložen do konfigurace_in
  */
-int SSPS_DOHODA_Konfigurace_TOML(FILE *vstup, SSPS_DOHODA_Konfigurace *konfigurace_in);
+int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigurace_in, SSPS_DOHODA_VSTUP_TYP typ);
 
 /*
  * Funkce pro vytvoření dohody ve formě PDF, výstup uložen do pdf_in

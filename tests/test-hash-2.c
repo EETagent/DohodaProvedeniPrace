@@ -182,22 +182,22 @@ int main(void) {
     SSPS_DOHODA_Konfigurace toml_konfigurace;
     SSPS_DOHODA_PDF pdf;
 
-    if (SSPS_DOHODA_Konfigurace_TOML(toml_soubor, &toml_konfigurace) == 1)
+    if (SSPS_DOHODA_Konfigurace_TOML(toml_soubor, &toml_konfigurace, SOUBOR) == 1)
         return 1;
     fclose(toml_soubor);
 
     if (SSPS_DOHODA_SepsatDohodu(toml_konfigurace, &pdf) == 1)
         return 1;
 
-    HPDF_SaveToStream (pdf);
-    HPDF_ResetStream (pdf);
+    HPDF_SaveToStream(pdf);
+    HPDF_ResetStream(pdf);
 
     for (;;) {
-        HPDF_ReadFromStream (pdf, buffer, &buffer_len);
+        HPDF_ReadFromStream(pdf, buffer, &buffer_len);
         if (buffer_len == 0)
             break;
-        if (fwrite (buffer, buffer_len, 1, pdf_soubor) != 1) {
-            fprintf (stderr, "Nelze zapsat do open_memstram");
+        if (fwrite(buffer, buffer_len, 1, pdf_soubor) != 1) {
+            fprintf(stderr, "Nelze zapsat do open_memstram");
             break;
         }
     }
@@ -218,7 +218,7 @@ int main(void) {
     free(pdf_soubor_buffer);
 
     // Generování MD5 hashe
-    for(unsigned int i = 0; i < 16; ++i){
+    for (unsigned int i = 0; i < 16; ++i) {
         snprintf(temp, 3, "%02x", hash_buffer[i]);
         strncat(pdf_hash_opravodvy, temp, 3);
     }

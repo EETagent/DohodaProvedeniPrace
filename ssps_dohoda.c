@@ -38,17 +38,19 @@
 // Výpočet odsazení pro umístění do levé poloviny dokumentu
 #define LEVA_POLOVINA_DOKUMENTU(stranka) HPDF_Page_GetWidth(stranka) / 8
 // Výpočet odsazení pro umístění do prostřed dokumentu
-#define PROSTREDEK_DOKUMENTU(stranka,text) (HPDF_Page_GetWidth(stranka) - HPDF_Page_TextWidth(stranka, text)) / 2
+#define PROSTREDEK_DOKUMENTU(stranka, text) (HPDF_Page_GetWidth(stranka) - HPDF_Page_TextWidth(stranka, text)) / 2
 // Výpočet odsazení pro umístění do prostřed dokumentu
 #define PRAVA_POLOVINA_DOKUMENTU(stranka) HPDF_Page_GetWidth(stranka) - 300
 
 // Přidání textu do dokumentu
-void HPDF_Page_AddText (HPDF_Page page, HPDF_REAL x, HPDF_REAL y, char *text);
-// Přidání popisku pro SSPŠ dohodu
-void SSPS_Page_AddPopisek (HPDF_Page stranka, char *konf, char *text, HPDF_REAL x, HPDF_REAL y);
-// Přidání položky pro SSPŠ dohodu
-void SSPS_Page_AddPolozka (HPDF_Page stranka, HPDF_REAL x, HPDF_REAL y, HPDF_REAL vyska, char *datum, char *cinnost, char *hodiny, char *poznamka);
+void HPDF_Page_AddText(HPDF_Page page, HPDF_REAL x, HPDF_REAL y, char *text);
 
+// Přidání popisku pro SSPŠ dohodu
+void SSPS_Page_AddPopisek(HPDF_Page stranka, char *konf, char *text, HPDF_REAL x, HPDF_REAL y);
+
+// Přidání položky pro SSPŠ dohodu
+void SSPS_Page_AddPolozka(HPDF_Page stranka, HPDF_REAL x, HPDF_REAL y, HPDF_REAL vyska, char *datum, char *cinnost,
+                          char *hodiny, char *poznamka);
 
 
 // Jumpy
@@ -57,9 +59,10 @@ jmp_buf jmp_pdf, jmp_toml;
 // Chyby při práci s PDF, zajímavá věc ten longjmp a setjmp
 void pdf_error_handler(HPDF_STATUS error, __attribute__((unused)) void *detail, __attribute__((unused)) void *data) {
     fprintf(stderr, "CHYBA: %04X\n" \
-    "http://libharu.sourceforge.net/error_handling.html#The_list_of_error_code_\n", (HPDF_UINT)error);
+    "http://libharu.sourceforge.net/error_handling.html#The_list_of_error_code_\n", (HPDF_UINT) error);
     longjmp(jmp_pdf, 1);
 }
+
 // Chyby při práci s TOML
 void toml_error_handler(char *error) {
     fprintf(stderr, "CHYBA: %s\n", error);
@@ -67,11 +70,23 @@ void toml_error_handler(char *error) {
 }
 
 // Konfigurace dokumentu přes TOML, výstup uložen do konfigurace_in
-int SSPS_DOHODA_Konfigurace_TOML(FILE *vstup, SSPS_DOHODA_Konfigurace *konfigurace_in) {
-    toml_table_t* toml;
+int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigurace_in, SSPS_DOHODA_VSTUP_TYP typ) {
+    toml_table_t *toml;
     char errbuf[50];
-    // Parsování TOML
-    toml = toml_parse_file(vstup, errbuf, sizeof(errbuf));
+    // Zpracování TOMLU podle datového typu
+    switch (typ) {
+        case SOUBOR:
+            // Parsování TOML ze souboru
+            toml = toml_parse_file((FILE *) vstup, errbuf, sizeof(errbuf));
+            break;
+        case STRING:
+            // Parsování TOML z textového řetězce
+            toml = toml_parse((char *) vstup, errbuf, sizeof(errbuf));
+            break;
+        default:
+            return 1;
+    }
+
     if (!toml) {
         fprintf(stderr, "CHYBA: %s\n", errbuf);
         return 1;
@@ -82,22 +97,22 @@ int SSPS_DOHODA_Konfigurace_TOML(FILE *vstup, SSPS_DOHODA_Konfigurace *konfigura
         return 1;
     }
     // Část [dohoda]
-    toml_table_t* dohoda_tabulka = toml_table_in(toml, "dohoda");
+    toml_table_t *dohoda_tabulka = toml_table_in(toml, "dohoda");
     if (!dohoda_tabulka)
         toml_error_handler("Pole [dohoda] nenalezeno");
     // Část [zamestnanec]
-    toml_table_t* zamestnanec_tabulka = toml_table_in(toml, "zamestnanec");
+    toml_table_t *zamestnanec_tabulka = toml_table_in(toml, "zamestnanec");
     if (!zamestnanec_tabulka)
         toml_error_handler("Pole [zamestnanec] nenalezeno");
 
     // Hodnota název v části [dohoda]
     toml_datum_t nazev_hodnota = toml_string_in(dohoda_tabulka, "nazev");
     if (!nazev_hodnota.ok)
-        toml_error_handler( "Položká nazev = nenalezena");
+        toml_error_handler("Položká nazev = nenalezena");
     // Hodnota kde v části [dohoda]
     toml_datum_t kde_hodnota = toml_string_in(dohoda_tabulka, "kde");
     if (!kde_hodnota.ok)
-        toml_error_handler( "Položká kde = nenalezena");
+        toml_error_handler("Položká kde = nenalezena");
 
     // Hodnoty v části [zamestnanec]
     // zamestnanec_polozky[0] = jmeno
@@ -108,7 +123,7 @@ int SSPS_DOHODA_Konfigurace_TOML(FILE *vstup, SSPS_DOHODA_Konfigurace *konfigura
     // zamestnanec_polozky[5] = pojistovna
     toml_datum_t zamestnanec_polozky[6];
     for (int i = 0; i < 6; i++) {
-        const char* key = toml_key_in(zamestnanec_tabulka, i);
+        const char *key = toml_key_in(zamestnanec_tabulka, i);
         if (!key)
             toml_error_handler("V tabulce [zamestnanec] nebyly nalezeny všechny položky");
         zamestnanec_polozky[i] = toml_string_in(zamestnanec_tabulka, key);
@@ -130,9 +145,9 @@ int SSPS_DOHODA_Konfigurace_TOML(FILE *vstup, SSPS_DOHODA_Konfigurace *konfigura
     // atd ...
     toml_datum_t prace_polozky[prace_velikost][4];
     for (int i = 0; i < prace_velikost; i++) {
-        toml_table_t* tabulka = toml_table_at(prace_tabulky, i);
+        toml_table_t *tabulka = toml_table_at(prace_tabulky, i);
         for (int o = 0; o < 4; o++) {
-            const char* key = toml_key_in(tabulka, o);
+            const char *key = toml_key_in(tabulka, o);
             if (!key)
                 toml_error_handler("V tabulce [[prace]] nebyly nalezeny všechny položky");
             prace_polozky[i][o] = toml_string_in(tabulka, key);
@@ -168,7 +183,7 @@ int SSPS_DOHODA_Konfigurace_TOML(FILE *vstup, SSPS_DOHODA_Konfigurace *konfigura
         free(zamestnanec_polozky[i].u.s);
     }
     for (int i = 0; i < prace_velikost; i++) {
-        for (int o = 0; o < 4; o++ ) {
+        for (int o = 0; o < 4; o++) {
             free(prace_polozky[i][o].u.s);
         }
     }
@@ -217,24 +232,31 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc 
     // Rozměry stránky A4 na výšku
     HPDF_Page_SetSize(pdf_strana, HPDF_PAGE_SIZE_A4, HPDF_PAGE_PORTRAIT);
     // Font Liberation Sans, kompatibilní s Arial, normální i tlustý, načítání z paměti
-    pismo_regular = HPDF_GetFont(pdf, HPDF_LoadTTFontFromMemory(pdf, LiberationSans_Regular_ttf, LiberationSans_Regular_ttf_len, HPDF_TRUE), "UTF-8");
-    pismo_bold = HPDF_GetFont(pdf, HPDF_LoadTTFontFromMemory(pdf, LiberationSans_Bold_ttf, LiberationSans_Bold_ttf_len, HPDF_TRUE), "UTF-8");
+    pismo_regular = HPDF_GetFont(pdf, HPDF_LoadTTFontFromMemory(pdf, LiberationSans_Regular_ttf,
+                                                                LiberationSans_Regular_ttf_len, HPDF_TRUE), "UTF-8");
+    pismo_bold = HPDF_GetFont(pdf, HPDF_LoadTTFontFromMemory(pdf, LiberationSans_Bold_ttf, LiberationSans_Bold_ttf_len,
+                                                             HPDF_TRUE), "UTF-8");
 
     HPDF_Page_SetFontAndSize(pdf_strana, pismo_bold, FONT_VELKY);
-    HPDF_Page_AddText(pdf_strana, PROSTREDEK_DOKUMENTU(pdf_strana, NADPIS), HPDF_Page_GetHeight (pdf_strana) - 100, NADPIS);
+    HPDF_Page_AddText(pdf_strana, PROSTREDEK_DOKUMENTU(pdf_strana, NADPIS), HPDF_Page_GetHeight(pdf_strana) - 100,
+                      NADPIS);
 
-    HPDF_Page_SetFontAndSize (pdf_strana, pismo_bold, FONT_NORMALNI);
-    HPDF_Page_AddText(pdf_strana, PROSTREDEK_DOKUMENTU(pdf_strana, PODNADPIS), HPDF_Page_GetHeight (pdf_strana) - 130, PODNADPIS);
+    HPDF_Page_SetFontAndSize(pdf_strana, pismo_bold, FONT_NORMALNI);
+    HPDF_Page_AddText(pdf_strana, PROSTREDEK_DOKUMENTU(pdf_strana, PODNADPIS), HPDF_Page_GetHeight(pdf_strana) - 130,
+                      PODNADPIS);
 
     // Údaje o zaměstnanci
-    HPDF_Page_SetFontAndSize (pdf_strana, pismo_regular, FONT_NORMALNI);
+    HPDF_Page_SetFontAndSize(pdf_strana, pismo_regular, FONT_NORMALNI);
 
     // DRY
     // Popisky přes for loop
-    char *ukazatele_hodnoty[6] = {toml_konfigurace.nazev, toml_konfigurace.jmeno, toml_konfigurace.rodne_cislo, toml_konfigurace.misto_narozeni, toml_konfigurace.adresa, toml_konfigurace.pojistovna};
+    char *ukazatele_hodnoty[6] = {toml_konfigurace.nazev, toml_konfigurace.jmeno, toml_konfigurace.rodne_cislo,
+                                  toml_konfigurace.misto_narozeni, toml_konfigurace.adresa,
+                                  toml_konfigurace.pojistovna};
     char *ukazatele_popisky[6] = {NAZEV_TEXT, JMENO_TEXT, RODNECISLO_TEXT, MISTO_TEXT, ADRESA_TEXT, POJISTOVNA_TEXT};
     for (int i = 0; i < 6; ++i) {
-        SSPS_Page_AddPopisek(pdf_strana, ukazatele_hodnoty[i], ukazatele_popisky[i], LEVA_POLOVINA_DOKUMENTU(pdf_strana),
+        SSPS_Page_AddPopisek(pdf_strana, ukazatele_hodnoty[i], ukazatele_popisky[i],
+                             LEVA_POLOVINA_DOKUMENTU(pdf_strana),
                              HPDF_Page_GetHeight(pdf_strana) - POPISEK_ODSAZENI - POPISEK_ROZESTUPY * i);
     }
     // Odsazený poposek nekompatibilní se smyčkou
@@ -242,40 +264,50 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc 
                          HPDF_Page_GetHeight(pdf_strana) - POPISEK_ODSAZENI - POPISEK_ROZESTUPY * 2);
 
     // Položky
-    HPDF_Page_SetFontAndSize (pdf_strana, pismo_regular, FONT_MALY);
+    HPDF_Page_SetFontAndSize(pdf_strana, pismo_regular, FONT_MALY);
     HPDF_Page_SetLineWidth(pdf_strana, 0.5f);
     // Referenční položka
-    SSPS_Page_AddPolozka(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 330, 35, "Datum",
+    SSPS_Page_AddPolozka(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 330, 35,
+                         "Datum",
                          "Činnost,", "Hodiny", "Pozn.");
 
     // Odsazení pro prázdné stránky v druhém for
     int odsazeni = 0;
     // Maximálně 14 zobrazených položek na hlavní stránce
-    for (int i = 0;  i < MAX_POLOZEK; ++i) {
+    for (int i = 0; i < MAX_POLOZEK; ++i) {
         // Existuje-li obsah
         if (i < toml_konfigurace.len)
             SSPS_Page_AddPolozka(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana),
-                                 HPDF_Page_GetHeight(pdf_strana) - 365 - (float) i * 20, 20, toml_konfigurace.datum[i], toml_konfigurace.cinnost[i],
+                                 HPDF_Page_GetHeight(pdf_strana) - 365 - (float) i * 20, 20, toml_konfigurace.datum[i],
+                                 toml_konfigurace.cinnost[i],
                                  toml_konfigurace.hodiny[i], toml_konfigurace.poznamka[i]);
-        // Prázdné řádky
+            // Prázdné řádky
         else
             SSPS_Page_AddPolozka(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana),
-                                 HPDF_Page_GetHeight(pdf_strana) - 365 - (float) odsazeni - (float) i * 20, 20, "", "", "", "");
+                                 HPDF_Page_GetHeight(pdf_strana) - 365 - (float) odsazeni - (float) i * 20, 20, "", "",
+                                 "", "");
     }
 
     // Podpis zaměstnance, neměnný
-    HPDF_Page_SetFontAndSize (pdf_strana, pismo_regular, FONT_NORMALNI);
+    HPDF_Page_SetFontAndSize(pdf_strana, pismo_regular, FONT_NORMALNI);
     // V jakém městě byla dohoda podepsána
-    SSPS_Page_AddPopisek(pdf_strana, " dne", toml_konfigurace.kde, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight (pdf_strana) - 680);
-    HPDF_Page_AddText(pdf_strana, PRAVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight (pdf_strana) - 680, "Podpis zaměstnance: ...............................");
+    SSPS_Page_AddPopisek(pdf_strana, " dne", toml_konfigurace.kde, LEVA_POLOVINA_DOKUMENTU(pdf_strana),
+                         HPDF_Page_GetHeight(pdf_strana) - 680);
+    HPDF_Page_AddText(pdf_strana, PRAVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 680,
+                      "Podpis zaměstnance: ...............................");
     // Podpis ředitele školy, neměnný
-    HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight (pdf_strana) - 730, "Schválení ředitelem školy");
-    HPDF_Page_AddText(pdf_strana, PRAVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight (pdf_strana) - 730, "Podpis ředitele školy: ...............................");
+    HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 730,
+                      "Schválení ředitelem školy");
+    HPDF_Page_AddText(pdf_strana, PRAVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 730,
+                      "Podpis ředitele školy: ...............................");
     // Informace pro odevzdání dokumentu, neměnné
-    HPDF_Page_SetFontAndSize (pdf_strana, pismo_regular, FONT_NORMALNI - 1);
-    HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight (pdf_strana) - 760, "Kompletně vyplněný a podepsaný výkaz je nutné odevzdat vždy do 26. v měsíci");
-    HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight (pdf_strana) - 780, "Výkaz za prosinec - do 20. prosince");
-    HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight (pdf_strana) - 800, "Vždy lze (po řádném vyplnění a podepsání) zaslat jako sken na: dita.binderova@ssps.cz");
+    HPDF_Page_SetFontAndSize(pdf_strana, pismo_regular, FONT_NORMALNI - 1);
+    HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 760,
+                      "Kompletně vyplněný a podepsaný výkaz je nutné odevzdat vždy do 26. v měsíci");
+    HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 780,
+                      "Výkaz za prosinec - do 20. prosince");
+    HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 800,
+                      "Vždy lze (po řádném vyplnění a podepsání) zaslat jako sken na: dita.binderova@ssps.cz");
 
     *pdf_in = pdf;
 
@@ -287,21 +319,21 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc 
  * Přidání textu do dokumentu
  * Stejné značení jako funkce z knihovny libharu pro lepší čitelnost kódu a jasnou odlišitelnost od kompletně custom funkcí níže
  */
-inline void HPDF_Page_AddText (HPDF_Page page, HPDF_REAL x, HPDF_REAL y, char *text) {
-    HPDF_REAL font_size = HPDF_Page_GetCurrentFontSize (page);
-    HPDF_Font font = HPDF_Page_GetCurrentFont (page);
-    HPDF_Page_BeginText (page);
-    HPDF_Page_SetFontAndSize (page, font, font_size);
-    HPDF_Page_MoveTextPos (page, x, y);
-    HPDF_Page_ShowText (page, text);
-    HPDF_Page_EndText (page);
+inline void HPDF_Page_AddText(HPDF_Page page, HPDF_REAL x, HPDF_REAL y, char *text) {
+    HPDF_REAL font_size = HPDF_Page_GetCurrentFontSize(page);
+    HPDF_Font font = HPDF_Page_GetCurrentFont(page);
+    HPDF_Page_BeginText(page);
+    HPDF_Page_SetFontAndSize(page, font, font_size);
+    HPDF_Page_MoveTextPos(page, x, y);
+    HPDF_Page_ShowText(page, text);
+    HPDF_Page_EndText(page);
 }
 
 /*
  * DRY
  * Přidání popisku (Například pojišťovna zaměstnance) do SSPŠ dohody
  */
-inline void SSPS_Page_AddPopisek (HPDF_Page stranka, char *konf, char *text, HPDF_REAL x, HPDF_REAL y) {
+inline void SSPS_Page_AddPopisek(HPDF_Page stranka, char *konf, char *text, HPDF_REAL x, HPDF_REAL y) {
     char *popisek = malloc(strlen(text) + strlen(konf) + 1);
     strcpy(popisek, text);
     strcat(popisek, konf);
@@ -313,17 +345,19 @@ inline void SSPS_Page_AddPopisek (HPDF_Page stranka, char *konf, char *text, HPD
  * DRY
  * Přidání ohraničené pracovní položky do SSPŠ dohody
  */
-inline void SSPS_Page_AddPolozka (HPDF_Page stranka, HPDF_REAL x, HPDF_REAL y, HPDF_REAL vyska, char *datum, char *cinnost, char *hodiny, char *poznamka) {
-    HPDF_Page_Rectangle(stranka, x,  y, 450, -vyska);
-    HPDF_Page_Rectangle(stranka, x,  y, 50, -vyska);
-    HPDF_Page_Rectangle(stranka, x+50,  y, 300, -vyska);
-    HPDF_Page_Rectangle(stranka, x+350,  y, 50, -vyska);
-    HPDF_Page_Rectangle(stranka, x+400,  y, 50, -vyska);
+inline void
+SSPS_Page_AddPolozka(HPDF_Page stranka, HPDF_REAL x, HPDF_REAL y, HPDF_REAL vyska, char *datum, char *cinnost,
+                     char *hodiny, char *poznamka) {
+    HPDF_Page_Rectangle(stranka, x, y, 450, -vyska);
+    HPDF_Page_Rectangle(stranka, x, y, 50, -vyska);
+    HPDF_Page_Rectangle(stranka, x + 50, y, 300, -vyska);
+    HPDF_Page_Rectangle(stranka, x + 350, y, 50, -vyska);
+    HPDF_Page_Rectangle(stranka, x + 400, y, 50, -vyska);
 
     HPDF_Page_Stroke(stranka);
 
-    HPDF_Page_AddText(stranka, x + 5 , y-15, datum);
-    HPDF_Page_AddText(stranka, x + 55 , y-15, cinnost);
-    HPDF_Page_AddText(stranka, x + 355 , y-15, hodiny);
-    HPDF_Page_AddText(stranka, x + 405 , y-15, poznamka);
+    HPDF_Page_AddText(stranka, x + 5, y - 15, datum);
+    HPDF_Page_AddText(stranka, x + 55, y - 15, cinnost);
+    HPDF_Page_AddText(stranka, x + 355, y - 15, hodiny);
+    HPDF_Page_AddText(stranka, x + 405, y - 15, poznamka);
 }
