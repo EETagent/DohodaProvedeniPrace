@@ -4,7 +4,7 @@
 
 #include <assert.h> // assert makro
 
-#include "toml.h" // Testovací TOML stdin vstup
+#include "toml_stdin.h" // Testovací TOML stdin vstup
 
 #include <ssps_dohoda.h>
 
