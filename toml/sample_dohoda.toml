@@ -11,25 +11,25 @@ adresa = "Novákových 123/2, Praha"
 pojistovna = "VZP - xxxxx"
 
 [[prace]]
-datum = "14.8"
+datum = "14.8."
 cinnost = "Hodně jsem pracoval"
 hodiny = "4"
 poznamka = ""
 
 [[prace]]
-datum = "15.8"
+datum = "15.8."
 cinnost = "Další práce"
 hodiny = "2"
 poznamka = ""
 
 [[prace]]
-datum = "16.8"
+datum = "16.8."
 cinnost = "Třetí položka už"
 hodiny = "9"
 poznamka = ""
 
 [[prace]]
-datum = "17.8"
+datum = "17.8."
 cinnost = "Poslední testovací blok"
 hodiny = "2"
 poznamka = ""
