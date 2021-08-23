@@ -102,6 +102,7 @@ ninja test
 
 ## TODO
 
+- [ ] Řazení podle data
 - [ ] Dynamický počet maximálních možných položek
 - [ ] **Vícestránkový dokument**
 - [ ] Optimalizace kódu a dokumentace

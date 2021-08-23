@@ -2,7 +2,7 @@ set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/external)
 
 find_package(ZLIB REQUIRED)
 
-include_directories(${EXTERNAL_INSTALL_LOCATION}/include ${CMAKE_SOURCE_DIR}/include)
+include_directories(${EXTERNAL_INSTALL_LOCATION}/include ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/tests/include )
 link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
 
 add_executable (ssps_dohoda_test_hash test-hash.c)

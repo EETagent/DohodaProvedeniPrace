@@ -6,8 +6,8 @@
 
 #include <assert.h> // assert makro
 
-#include "md5.h" // MD5 hash souboru
-#include "toml_stdin.h" // Testovací TOML stdin vstup
+#include <md5.h> // MD5 hash souboru
+#include <toml_stdin.h> // Testovací TOML stdin vstup
 
 #include <ssps_dohoda.h>
 

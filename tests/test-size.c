@@ -4,7 +4,7 @@
 
 #include <assert.h> // assert makro
 
-#include "toml_stdin.h" // Testovací TOML stdin vstup
+#include <toml_stdin.h> // Testovací TOML stdin vstup
 
 #include <ssps_dohoda.h>
 
@@ -32,7 +32,6 @@ int main(void) {
 
     // Je PDF menší než nebo rovno 1MB?
     assert(pdf_velikost <= 1000000);
-
 
     return 0;
 
