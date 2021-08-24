@@ -42,6 +42,12 @@
 // Výpočet odsazení pro umístění do prostřed dokumentu
 #define PRAVA_POLOVINA_DOKUMENTU(stranka) HPDF_Page_GetWidth(stranka) - 300
 
+// Seřadí prvky v toml_datum_t prace_polozky[][4]
+int toml_datum_t_bubblesort(toml_datum_t prace_polozky[][4], unsigned int len, SSPS_DOHODA_RAZENI_POLOZEK razeni);
+
+// Porovná dvě data ve formátu dd.mm.
+int porovnani_mesicu_dnu(char *datum_1, char *datum_2);
+
 // Přidání textu do dokumentu
 void HPDF_Page_AddText(HPDF_Page page, HPDF_REAL x, HPDF_REAL y, char *text);
 
@@ -70,7 +76,7 @@ void toml_error_handler(char *error) {
 }
 
 // Konfigurace dokumentu přes TOML, výstup uložen do konfigurace_in
-int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigurace_in, SSPS_DOHODA_VSTUP_TYP typ) {
+int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigurace_in, SSPS_DOHODA_VSTUP_TYP typ, SSPS_DOHODA_RAZENI_POLOZEK razeni_polozek) {
     toml_table_t *toml;
     char errbuf[50];
     // Zpracování TOMLU podle datového typu
@@ -152,6 +158,13 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
                 toml_error_handler("V tabulce [[prace]] nebyly nalezeny všechny položky");
             prace_polozky[i][o] = toml_string_in(tabulka, key);
         }
+    }
+
+    // Není li nastaveno NEŘADIT
+    if (razeni_polozek != NERADIT) {
+        // Seřazení položek algoritmem bubblesort
+        if (toml_datum_t_bubblesort(prace_polozky, prace_velikost, razeni_polozek) == 1)
+            toml_error_handler("Nepovedlo se seřadit položky v dokumentu");
     }
 
     // Konfigurace
@@ -360,4 +373,100 @@ SSPS_Page_AddPolozka(HPDF_Page stranka, HPDF_REAL x, HPDF_REAL y, HPDF_REAL vysk
     HPDF_Page_AddText(stranka, x + 55, y - 15, cinnost);
     HPDF_Page_AddText(stranka, x + 355, y - 15, hodiny);
     HPDF_Page_AddText(stranka, x + 405, y - 15, poznamka);
+}
+
+/*
+ * Seřadí prvky v toml_datum_t prace_polozky[][4]
+ * Algoritmus Bubblesort
+ * Vrací 0 v případě úspěšného provedení, 1 když nastane chyba
+ */
+int toml_datum_t_bubblesort(toml_datum_t prace_polozky[][4], unsigned int len, SSPS_DOHODA_RAZENI_POLOZEK razeni) {
+    int je_serazeno = 0;
+    int zpusob_razeni;
+
+    // Opakování smyšky dokud nebudou veškeré položky seřazeny
+    while (je_serazeno != 1) {
+        je_serazeno = 1;
+        for (int i = 0; i < len - 1; i++) {
+            // Které datum je větší?
+            int t = porovnani_mesicu_dnu(prace_polozky[i][0].u.s, prace_polozky[i + 1][0].u.s);
+            // Chyba během porovávání
+            if (t == 2)
+                return 1;
+            switch (razeni) {
+                // Řazení položek od nejstarší
+                case OD_NEJSTARSIHO:
+                    zpusob_razeni = 0;
+                    break;
+                // Řazení položek od nejnovější
+                case OD_NEJNOVEJSIHO:
+                    zpusob_razeni = 1;
+                    break;
+                default:
+                    break;
+            }
+            // provnani_dat vrací 0 při >, 1 při <
+            // Přes zpusob_razeni tak realizujeme SSPS_DOHODA_RAZENI_POLOZEK
+            if (t == zpusob_razeni) {
+                // Prohození všech čtyř údaju položky práce
+                char *temp[4] = {prace_polozky[i][0].u.s, prace_polozky[i][1].u.s, prace_polozky[i][2].u.s,
+                                 prace_polozky[i][3].u.s};
+                for (int o = 0; o < 4; o++) {
+                    prace_polozky[i][o].u.s = prace_polozky[i + 1][o].u.s;
+                    prace_polozky[i + 1][o].u.s = temp[o];
+                }
+                je_serazeno = 0;
+            }
+        }
+    }
+    return 0;
+}
+
+/*
+ * Porovná dvě data ve formátu dd.mm.
+ * Vrátí nulu v případě, že je datum_1 větší, jedna je-li větší datum_2
+ * Při chybě během porovnání vrací funkce číslo 2
+ */
+int porovnani_mesicu_dnu(char *datum_1, char *datum_2) {
+    char *endptr;
+
+    // Budeme modifikovat lokální textové řetězce
+    char prvnidatum[6], druhedatum[6];
+    strncpy(prvnidatum, datum_1, 6);
+    strncpy(druhedatum, datum_2, 6);
+
+    jmp_buf jump;
+    // V případě chyby
+    if (setjmp(jump) == 1) {
+        return 2;
+    }
+
+    int prvnidatum_den = (int) strtol(strtok(prvnidatum, "."), &endptr, 10);
+    // Pokud nebyl převeden celý vstup
+    if (*endptr != '\0') {
+        longjmp(jump, 1);
+    }
+    int prvnidatum_mesic = (int) strtol(strtok(NULL, "."), &endptr, 10);
+    if (*endptr != '\0') {
+        longjmp(jump, 1);
+    }
+    int druhedatum_den = (int) strtol(strtok(druhedatum, "."), &endptr, 10);
+    if (*endptr != '\0') {
+        longjmp(jump, 1);
+    }
+    int druhedatum_mesic = (int) strtol(strtok(NULL, "."), &endptr, 10);
+    if (*endptr != '\0') {
+        longjmp(jump, 1);
+    }
+
+    // První měsíc je větší než druhý měsíc
+    if (prvnidatum_mesic > druhedatum_mesic)
+        return 0;
+    else if (prvnidatum_mesic == druhedatum_mesic) {
+        // V případě, že jsou měsíce stejné a den u prvního data je větší
+        if (prvnidatum_den > druhedatum_den)
+            return 0;
+    }
+    // Jinak je větší druhé datum
+    return 1;
 }

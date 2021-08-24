@@ -16,7 +16,7 @@ int main(void) {
 
     SSPS_DOHODA_Konfigurace toml_konfigurace;
     SSPS_DOHODA_PDF pdf;
-    if (SSPS_DOHODA_Konfigurace_TOML(toml_soubor, &toml_konfigurace, SOUBOR) == 1)
+    if (SSPS_DOHODA_Konfigurace_TOML(toml_soubor, &toml_konfigurace, SOUBOR, NERADIT) == 1)
         return 1;
     fclose(toml_soubor);
 

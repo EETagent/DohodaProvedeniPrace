@@ -11,10 +11,9 @@
 
 #include <ssps_dohoda.h>
 
-
 int main(void) {
     // Hash nepoškozeného PDF
-    const char pdf_hash_reference[33] = "d4df50e42dddbd5f7769f8212a5ad0f1";
+    const char pdf_hash_reference[33] = "4ae4a5e69dfc7367214ff0fd44634e25";
     char pdf_hash_opravodvy[33];
     char temp[4];
 
@@ -24,7 +23,7 @@ int main(void) {
     FILE *toml_soubor, *pdf_soubor;
 
     // Otevření toml dat jako FILE* v paměti
-    toml_soubor = fmemopen(toml_stdin_long, toml_stdin_long_len, "r");
+    toml_soubor = fmemopen(toml_stdin, toml_stdin_len, "r");
 
     char *pdf_soubor_buffer;
     size_t pdf_soubor_buffer_len;
@@ -35,7 +34,7 @@ int main(void) {
     SSPS_DOHODA_Konfigurace toml_konfigurace;
     SSPS_DOHODA_PDF pdf;
 
-    if (SSPS_DOHODA_Konfigurace_TOML(toml_soubor, &toml_konfigurace, SOUBOR) == 1)
+    if (SSPS_DOHODA_Konfigurace_TOML(toml_soubor, &toml_konfigurace, SOUBOR, OD_NEJNOVEJSIHO) == 1)
         return 1;
     fclose(toml_soubor);
 
@@ -43,6 +42,7 @@ int main(void) {
         return 1;
 
     HPDF_SaveToStream(pdf);
+    HPDF_SaveToFile(pdf, "jepes");
     HPDF_ResetStream(pdf);
 
     for (;;) {

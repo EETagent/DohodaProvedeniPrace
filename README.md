@@ -92,8 +92,9 @@ ninja
 
 Součástí projektu jsou i zabudované testy:
 
-- `PDF_SAME_HASH_TEST` -> Zda je výstup PDF totožný k jeho TOML konfiguraci
-- `PDF_SAME_HASH_TEST2` -> Zda je výstup PDF totožný k jeho TOML konfiguraci větší než 15 položek
+- `PDF_TEST` -> Zda je výstup PDF totožný k jeho TOML konfiguraci
+- `PDF_VELKE_TEST` -> Zda je výstup PDF totožný k jeho TOML konfiguraci větší než 15 položek
+- `PDF_RAZENI_TEST` -> Zda jsou položky v PDF správě seřazeny, jinak stejný jako PDF_SAME_HASH_TEST 
 - `PDF_SIZE_TEST` -> Zda je výsledné PDF menší než 1 MB
 
 ```bash

@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     SSPS_DOHODA_Konfigurace toml_konfigurace;
 
     // Načtení TOML konfigurace ze standardního vstupu
-    if (SSPS_DOHODA_Konfigurace_TOML(stdin, &toml_konfigurace, SOUBOR) == 1)
+    if (SSPS_DOHODA_Konfigurace_TOML(stdin, &toml_konfigurace, SOUBOR, NERADIT) == 1)
         return 1;
 
     // Vytvoření PDF
