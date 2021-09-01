@@ -30,7 +30,7 @@ dohoda_ssps -- < konfigurace.toml > ../mojedohoda.pdf
 ```toml
 [dohoda]
 nazev = "Program na tovrbu dohod o provedení práce"
-kde = "V Praze"
+kde = "V Liberci"
 
 [zamestnanec]
 jmeno = "Franta Novák"
@@ -83,7 +83,7 @@ git clone https://github.com/EETagent/DohodaProvedeniPrace.git
 Sestavení aplikace:  
 
 ```bash
-mkdir build
+mkdir build && cd build
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Release  ..
 ninja
 ```
@@ -95,7 +95,7 @@ Součástí projektu jsou i zabudované testy:
 - `PDF_TEST` -> Zda je výstup PDF totožný k jeho TOML konfiguraci
 - `PDF_VELKE_TEST` -> Zda je výstup PDF totožný k jeho TOML konfiguraci větší než 15 položek
 - `PDF_RAZENI_TEST` -> Zda jsou položky v PDF správě seřazeny, jinak stejný jako PDF_SAME_HASH_TEST 
-- `PDF_SIZE_TEST` -> Zda je výsledné PDF menší než 1 MB
+- `PDF_VELIKOST_TEST` -> Zda je výsledné PDF menší než 1 MB
 
 ```bash
 ninja test
