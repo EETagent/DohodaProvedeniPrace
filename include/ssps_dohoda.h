@@ -9,11 +9,6 @@ typedef HPDF_Doc SSPS_DOHODA_PDF;
 #define PDF_SOUBOR_PREDLOZKA "DPP"
 
 /*
- * Počet maximálně možných položek
- */
-#define MAX_POLE 15
-
-/*
  * Struktura s konfigurací PDF
  */
 typedef struct SSPS_DOHODA_Konfigurace {
@@ -35,14 +30,14 @@ typedef struct SSPS_DOHODA_Konfigurace {
     char pojistovna[30];
 
     // Nemusí být vyplněny všechny
-    // MAX_POLE dat provedení práce
-    char datum[MAX_POLE][6];
-    // MAX_POLE činností provedení práce
-    char cinnost[MAX_POLE][80];
-    // MAX_POLE hodin provedení práce
-    char hodiny[MAX_POLE][6];
-    // MAX_POLE poznámek provedení práce
-    char poznamka[MAX_POLE][10];
+    // 2D pole obsahující datum pracovní činnosti
+    char **datum;
+    // 2D pole obsahující název pracovní činnosti
+    char **cinnost;
+    // 2D pole obsahující počet hodin pracovní činnosti
+    char **hodiny;
+    // 2D pole obsahující poznámky pracovní činnosti
+    char **poznamka;
 
     // Počet položek
     unsigned int len;
@@ -88,6 +83,10 @@ typedef enum {
 int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigurace_in, SSPS_DOHODA_VSTUP_TYP typ, SSPS_DOHODA_RAZENI_POLOZEK razeni_polozek);
 
 /*
+ * Vyčištění paměti alokované v rámci struktury SSPS_DOHODA_Konfigurace
+ */
+int SSPS_DOHODA_Konfigurace_Free(SSPS_DOHODA_Konfigurace *konfigurace);
+/*
  * Funkce pro vytvoření dohody ve formě PDF, výstup uložen do pdf_in
  */
 int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, SSPS_DOHODA_PDF *pdf_in);
@@ -95,6 +94,5 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, SSPS_DOHO
 /*
  * Funkce pro vypsání celkového počtu odpracovaných hodin
  * Vrací 1 v případě chyby, 0 v případě úspěšného provedení
- * Počítají se jen hodiny do MAX_POLE!
  */
 int SSPS_DOHODA_PocetHodin(SSPS_DOHODA_Konfigurace toml_konfigurace, float *hodiny);

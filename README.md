@@ -128,6 +128,6 @@ ninja test
 - [x] Řazení podle data
 - [x] Optimalizace kódu a dokumentace
 - [x] Výpis počtu odpracovaných hodin
-- [ ] Dynamický počet maximálních možných položek
+- [x] Dynamický počet maximálních možných položek
 - [ ] **Vícestránkový dokument**
 - [ ] **CGI interface a webový frontend**

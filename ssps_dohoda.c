@@ -171,6 +171,14 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
     SSPS_DOHODA_Konfigurace konf;
     // Počet všech vytvořených položek
     konf.len = prace_velikost;
+
+    // Inicializace všech 4 položek podle jejich počtu v TOML konfiguraci
+    // Nejprve hodnota[x] az hodnota[y]
+    konf.datum = malloc(konf.len * sizeof (char *));
+    konf.cinnost = malloc(konf.len * sizeof (char *));
+    konf.hodiny = malloc(konf.len * sizeof (char *));
+    konf.poznamka = malloc(konf.len * sizeof (char *));
+
     // Údaje o dohodě
     strncpy(konf.nazev, nazev_hodnota.u.s, sizeof(konf.nazev));
     strncpy(konf.kde, kde_hodnota.u.s, sizeof(konf.kde));
@@ -181,12 +189,15 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
     strncpy(konf.misto_narozeni, zamestnanec_polozky[3].u.s, sizeof(konf.misto_narozeni));
     strncpy(konf.adresa, zamestnanec_polozky[4].u.s, sizeof(konf.adresa));
     strncpy(konf.pojistovna, zamestnanec_polozky[5].u.s, sizeof(konf.pojistovna));
+
     // Údaje o jednotlivých činnostech
-    for (int i = 0; i < prace_velikost && i < MAX_POLE; i++) {
-        strncpy(konf.datum[i], prace_polozky[i][0].u.s, sizeof(konf.datum[i]));
-        strncpy(konf.cinnost[i], prace_polozky[i][1].u.s, sizeof(konf.cinnost[i]));
-        strncpy(konf.hodiny[i], prace_polozky[i][2].u.s, sizeof(konf.hodiny[i]));
-        strncpy(konf.poznamka[i], prace_polozky[i][3].u.s, sizeof(konf.hodiny[i]));
+    for (int i = 0; i < konf.len; i++) {
+        // Inicializace všech vnořených polí
+        // hodnota[x][x] az hodnota[y][y]
+        konf.datum[i] = strdup(prace_polozky[i][0].u.s);
+        konf.cinnost[i] = strdup(prace_polozky[i][1].u.s);
+        konf.hodiny[i] = strdup(prace_polozky[i][2].u.s);
+        konf.poznamka[i] = strdup(prace_polozky[i][3].u.s);
     }
 
     // Vyčištění paměti zabrané stringy ve struktuře
@@ -208,10 +219,19 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
     return 0;
 }
 
+// Vyčištění paměti alokované v rámci struktury SSPS_DOHODA_Konfigurace
+int SSPS_DOHODA_Konfigurace_Free(SSPS_DOHODA_Konfigurace *konfigurace) {
+    free(*konfigurace->datum);
+    free(*konfigurace->cinnost);
+    free(*konfigurace->poznamka);
+    free(*konfigurace->hodiny);
+    return 0;
+}
+
 // Funkce pro vypsání celkového počtu odpracovaných hodin
 int SSPS_DOHODA_PocetHodin(SSPS_DOHODA_Konfigurace toml_konfigurace, float *hodiny) {
     char *endptr;
-    for (int i = 0; i < MAX_POLOZEK; ++i) {
+    for (int i = 0; i < toml_konfigurace.len; ++i) {
         float prace_cas = strtof(toml_konfigurace.hodiny[i], &endptr);
         if (*endptr != '\0') {
             return 1;
@@ -219,7 +239,6 @@ int SSPS_DOHODA_PocetHodin(SSPS_DOHODA_Konfigurace toml_konfigurace, float *hodi
         *hodiny += prace_cas;
     }
     return 0;
-
 }
 
 // Funkce pro vytvoření dohody ve formě PDF, výstup uložen do pdf_in

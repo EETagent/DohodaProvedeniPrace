@@ -30,6 +30,9 @@ int main(void) {
     // Velikost PDF v bytech
     HPDF_UINT32 pdf_velikost = HPDF_GetStreamSize(pdf);
 
+    HPDF_Free(pdf);
+    SSPS_DOHODA_Konfigurace_Free(&toml_konfigurace);
+
     // Je PDF menší než nebo rovno 1MB?
     assert(pdf_velikost <= 1000000);
 

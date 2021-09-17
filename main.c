@@ -140,6 +140,7 @@ int main(int argc, char **argv) {
 
     //Vyčištění paměti zabrané PDF souborem a tomlem
     HPDF_Free(pdf);
+    SSPS_DOHODA_Konfigurace_Free(&toml_konfigurace);
 
     return 0;
 }

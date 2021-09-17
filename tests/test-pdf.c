@@ -77,6 +77,9 @@ int main(void) {
 
     fprintf(stderr, "Hash 1: %s\nHash 2: %s", pdf_hash_reference, pdf_hash_opravodvy);
 
+    HPDF_Free(pdf);
+    SSPS_DOHODA_Konfigurace_Free(&toml_konfigurace);
+
     // Jsou oba výstupy hašovací funkce rovny?
     assert(strcmp(pdf_hash_reference, pdf_hash_opravodvy) == 0);
 
