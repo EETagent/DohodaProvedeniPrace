@@ -208,6 +208,20 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
     return 0;
 }
 
+// Funkce pro vypsání celkového počtu odpracovaných hodin
+int SSPS_DOHODA_PocetHodin(SSPS_DOHODA_Konfigurace toml_konfigurace, float *hodiny) {
+    char *endptr;
+    for (int i = 0; i < MAX_POLOZEK; ++i) {
+        float prace_cas = strtof(toml_konfigurace.hodiny[i], &endptr);
+        if (*endptr != '\0') {
+            return 1;
+        }
+        *hodiny += prace_cas;
+    }
+    return 0;
+
+}
+
 // Funkce pro vytvoření dohody ve formě PDF, výstup uložen do pdf_in
 int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc *pdf_in) {
 

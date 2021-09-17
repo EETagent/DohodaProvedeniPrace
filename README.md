@@ -25,11 +25,33 @@ S přepínačem `--` podporuje program vypsání PDF souboru do `stdout`, tento 
 dohoda_ssps -- < konfigurace.toml > ../mojedohoda.pdf
 ```
 
+Vypsání nápovědy
+
+```bash
+dohoda_ssps -h
+```
+```
+DohodaProvedeniPrace (https://github.com/EETagent/DohodaProvedeniPrace)
+Použití programu: ./dohoda_ssps [-hnstf] < soubor
+-h Vypsání této nápovědy
+-n Seřazení položek od nejnovější
+-s Seřazení položek od nejstarší
+-t Vypsat počet odpracovaných hodin
+-f Cesta k souboru
+-- Vypsat PDF do stdout
+
+PŘÍKLADY:
+	./dohoda_ssps < vykaz.toml
+	./dohoda_ssps -s < vykaz.toml
+	./dohoda_ssps -- < vykaz.toml > dohoda.pdf
+	./dohoda_ssps -n -f /home/thinkpad/vykaz.toml -- > dohoda.pdf
+```
+
 ## Ukázkový TOML
 
 ```toml
 [dohoda]
-nazev = "Program na tovrbu dohod o provedení práce"
+nazev = "Program na tovrbu výkazů pro dohody o provedení práce"
 kde = "V Liberci"
 
 [zamestnanec]
@@ -103,8 +125,9 @@ ninja test
 
 ## TODO
 
-- [ ] Řazení podle data
+- [x] Řazení podle data
+- [x] Optimalizace kódu a dokumentace
+- [x] Výpis počtu odpracovaných hodin
 - [ ] Dynamický počet maximálních možných položek
 - [ ] **Vícestránkový dokument**
-- [ ] Optimalizace kódu a dokumentace
 - [ ] **CGI interface a webový frontend**

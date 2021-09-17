@@ -1,18 +1,92 @@
 #include <stdio.h> // Standardní vstup a výstup
 #include <string.h> // Práce s textovými řetězci
 
+#include <unistd.h> // Getopt, parsování argumentů
+
 #include <hpdf.h> // libharu, tvorba PDF
 
 #include <ssps_dohoda.h>
 
+// Nápověda k programu
+void napoveda(char *program) {
+    fprintf(stderr, "DohodaProvedeniPrace (https://github.com/EETagent/DohodaProvedeniPrace)\n");
+    fprintf(stderr, "Použití programu: %s [-hnstf] < soubor\n", program);
+    fprintf(stderr, "-h Vypsání této nápovědy\n-n Seřazení položek od nejnovější\n-s Seřazení položek od nejstarší\n-t Vypsat počet odpracovaných hodin\n-f Cesta k souboru\n-- Vypsat PDF do stdout\n");
+    fprintf(stderr, "\nPŘÍKLADY:\n");
+    fprintf(stderr, "\t%s < vykaz.toml\n", program);
+    fprintf(stderr, "\t%s -s < vykaz.toml\n", program);
+    fprintf(stderr, "\t%s -- < vykaz.toml > dohoda.pdf\n", program);
+    fprintf(stderr, "\t%s -n -f /home/thinkpad/vykaz.toml -- > dohoda.pdf\n", program);
+
+    exit(1);
+}
+
 int main(int argc, char **argv) {
+    int argumenty;
+    unsigned short argumenty_pocet = 1;
+    unsigned short pocet_hodin_argument;
+
+    char *soubor;
 
     SSPS_DOHODA_PDF pdf;
     SSPS_DOHODA_Konfigurace toml_konfigurace;
+    SSPS_DOHODA_RAZENI_POLOZEK razeni = NERADIT;
 
-    // Načtení TOML konfigurace ze standardního vstupu
-    if (SSPS_DOHODA_Konfigurace_TOML(stdin, &toml_konfigurace, SOUBOR, NERADIT) == 1)
-        return 1;
+    while (( argumenty = getopt(argc, argv, "hnstf:")) != -1) {
+        switch (argumenty) {
+            // Vypsání nápovědy
+            case 'h':
+                napoveda(argv[0]);
+            // Řazení od nejnovějšího
+            case 'n':
+                razeni = OD_NEJNOVEJSIHO;
+                argumenty_pocet++;
+                break;
+            // Řazení od nejstaršího
+            case 's':
+                razeni = OD_NEJSTARSIHO;
+                argumenty_pocet++;
+                break;
+            // Vypsání odpracovaných hodin
+            case 't':
+                argumenty_pocet++;
+                pocet_hodin_argument = 1;
+                break;
+            // Načtení konfigurace přes cestu k souboru jako argument
+            case 'f':
+                argumenty_pocet++;
+                soubor = strdup(optarg);
+                break;
+            default:
+                napoveda(argv[0]);
+        }
+    }
+
+    // Pokud byl zadán soubor přes argument programu -f
+    if (soubor) {
+        FILE *fp = fopen(soubor,"r");
+        if ( !fp ) {
+            fprintf(stderr, "Soubor nelze otevřít: %s", soubor);
+            free(soubor);
+            return 1;
+        }
+        free(soubor);
+        // Načtení TOML konfigurace z přiloženého souboru
+        if (SSPS_DOHODA_Konfigurace_TOML(fp, &toml_konfigurace, SOUBOR, razeni) == 1)
+            return 1;
+    } else {
+        // Načtení TOML konfigurace ze standardního vstupu
+        if (SSPS_DOHODA_Konfigurace_TOML(stdin, &toml_konfigurace, SOUBOR, razeni) == 1)
+            return 1;
+    }
+
+    // Vypsání celkového počtu hodin
+    if (pocet_hodin_argument) {
+        float pocet_hodin;
+        SSPS_DOHODA_PocetHodin(toml_konfigurace, &pocet_hodin);
+        printf("%0.2f", pocet_hodin);
+        return 0;
+    }
 
     // Vytvoření PDF
     if (SSPS_DOHODA_SepsatDohodu(toml_konfigurace, &pdf) == 1)
@@ -20,7 +94,7 @@ int main(int argc, char **argv) {
 
     // Vypsat do stdout při argumentu --
     // ./dohoda_ssps -- < data.toml > moje.pdf
-    if (argc > 1 && strcmp(argv[1], "--") == 0) {
+    if (argc > 1 && strcmp(argv[argumenty_pocet], "--") == 0) {
         // Uložení PDF do paměti
         HPDF_SaveToStream(pdf);
         // Přetočení PDF streamu na začátek (pro postupné vypsání do stdout)

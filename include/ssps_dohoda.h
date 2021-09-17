@@ -92,3 +92,9 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
  */
 int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, SSPS_DOHODA_PDF *pdf_in);
 
+/*
+ * Funkce pro vypsání celkového počtu odpracovaných hodin
+ * Vrací 1 v případě chyby, 0 v případě úspěšného provedení
+ * Počítají se jen hodiny do MAX_POLE!
+ */
+int SSPS_DOHODA_PocetHodin(SSPS_DOHODA_Konfigurace toml_konfigurace, float *hodiny);
