@@ -1,5 +1,6 @@
 #include <stdio.h> // Standardní vstup a výstup
 #include <string.h> // Práce s textovými řetězci
+#include <stdbool.h> // True a false
 
 #include <unistd.h> // Getopt, parsování argumentů
 
@@ -24,7 +25,9 @@ void napoveda(char *program) {
 int main(int argc, char **argv) {
     int argumenty;
     unsigned short argumenty_pocet = 1;
-    unsigned short pocet_hodin_argument;
+
+    bool pocet_hodin_argument;
+    bool soubor_argument;
 
     char *soubor;
 
@@ -50,11 +53,12 @@ int main(int argc, char **argv) {
             // Vypsání odpracovaných hodin
             case 't':
                 argumenty_pocet++;
-                pocet_hodin_argument = 1;
+                pocet_hodin_argument = true;
                 break;
             // Načtení konfigurace přes cestu k souboru jako argument
             case 'f':
                 argumenty_pocet++;
+                soubor_argument = true;
                 soubor = strdup(optarg);
                 break;
             default:
@@ -63,7 +67,7 @@ int main(int argc, char **argv) {
     }
 
     // Pokud byl zadán soubor přes argument programu -f
-    if (soubor) {
+    if (soubor_argument == true) {
         FILE *fp = fopen(soubor,"r");
         if ( !fp ) {
             fprintf(stderr, "Soubor nelze otevřít: %s", soubor);
@@ -81,7 +85,7 @@ int main(int argc, char **argv) {
     }
 
     // Vypsání celkového počtu hodin
-    if (pocet_hodin_argument) {
+    if (pocet_hodin_argument == true) {
         float pocet_hodin;
         SSPS_DOHODA_PocetHodin(toml_konfigurace, &pocet_hodin);
         printf("%0.2f", pocet_hodin);
