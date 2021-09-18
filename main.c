@@ -22,12 +22,10 @@ void napoveda(char *program) {
 
 int main(int argc, char **argv) {
     int argumenty;
-    unsigned short argumenty_pocet = 0;
 
     bool pocet_hodin_argument = false;
     bool soubor_argument = false;
     bool pdf_do_stdout = false;
-
 
     char *soubor;
 
@@ -43,22 +41,18 @@ int main(int argc, char **argv) {
                 return 0;
             // Řazení od nejnovějšího
             case 'n':
-                argumenty_pocet++;
                 razeni = OD_NEJNOVEJSIHO;
                 break;
             // Řazení od nejstaršího
             case 's':
-                argumenty_pocet++;
                 razeni = OD_NEJSTARSIHO;
                 break;
             // Vypsání odpracovaných hodin
             case 't':
-                argumenty_pocet++;
                 pocet_hodin_argument = true;
                 break;
             // Načtení konfigurace přes cestu k souboru jako argument
             case 'f':
-                argumenty_pocet++;
                 soubor_argument = true;
                 soubor = strdup(optarg);
                 break;
@@ -100,28 +94,24 @@ int main(int argc, char **argv) {
 
     // Vypsat do stdout při argumentu --
     // ./dohoda_ssps -- < data.toml > moje.pdf
-    if (argc - 1 > argumenty_pocet) {
-        if (strcmp(argv[++argumenty_pocet], "--") == 0) {
-            pdf_do_stdout = true;
-            // Uložení PDF do paměti
-            HPDF_SaveToStream(pdf);
-            // Přetočení PDF streamu na začátek (pro postupné vypsání do stdout)
-            HPDF_ResetStream(pdf);
-            // Vypsání do stdout
-            for (;;) {
-                HPDF_BYTE buffer[4096];
-                HPDF_UINT32 buffer_len = sizeof(buffer);
-                HPDF_ReadFromStream(pdf, buffer, &buffer_len);
-                if (buffer_len == 0)
-                    break;
-                if (fwrite(buffer, buffer_len, 1, stdout) != 1) {
-                    fprintf(stderr, "Nelze vypsat do stdout");
-                    break;
-                }
+    if (strcmp(argv[--argc], "--") == 0) {
+        pdf_do_stdout = true;
+        // Uložení PDF do paměti
+        HPDF_SaveToStream(pdf);
+        // Přetočení PDF streamu na začátek (pro postupné vypsání do stdout)
+        HPDF_ResetStream(pdf);
+        // Vypsání do stdout
+        for (;;) {
+            HPDF_BYTE buffer[4096];
+            HPDF_UINT32 buffer_len = sizeof(buffer);
+            HPDF_ReadFromStream(pdf, buffer, &buffer_len);
+            if (buffer_len == 0)
+                break;
+            if (fwrite(buffer, buffer_len, 1, stdout) != 1) {
+                fprintf(stderr, "Nelze vypsat do stdout");
+                break;
             }
         }
-
-
     }
 
     // Jinak uložit do souboru
