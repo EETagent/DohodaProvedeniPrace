@@ -22,10 +22,12 @@ void napoveda(char *program) {
 
 int main(int argc, char **argv) {
     int argumenty;
-    unsigned short argumenty_pocet = 1;
+    unsigned short argumenty_pocet = 0;
 
     bool pocet_hodin_argument = false;
     bool soubor_argument = false;
+    bool pdf_do_stdout = false;
+
 
     char *soubor;
 
@@ -33,7 +35,7 @@ int main(int argc, char **argv) {
     SSPS_DOHODA_Konfigurace toml_konfigurace;
     SSPS_DOHODA_RAZENI_POLOZEK razeni = NERADIT;
 
-    while (( argumenty = getopt(argc, argv, "hnstf:")) != -1) {
+    while ((argumenty = getopt(argc, argv, "hnstf:")) != -1) {
         switch (argumenty) {
             // Vypsání nápovědy
             case 'h':
@@ -41,13 +43,13 @@ int main(int argc, char **argv) {
                 return 0;
             // Řazení od nejnovějšího
             case 'n':
-                razeni = OD_NEJNOVEJSIHO;
                 argumenty_pocet++;
+                razeni = OD_NEJNOVEJSIHO;
                 break;
             // Řazení od nejstaršího
             case 's':
-                razeni = OD_NEJSTARSIHO;
                 argumenty_pocet++;
+                razeni = OD_NEJSTARSIHO;
                 break;
             // Vypsání odpracovaných hodin
             case 't':
@@ -68,8 +70,8 @@ int main(int argc, char **argv) {
 
     // Pokud byl zadán soubor přes argument programu -f
     if (soubor_argument == true) {
-        FILE *fp = fopen(soubor,"r");
-        if ( !fp ) {
+        FILE *fp = fopen(soubor, "r");
+        if (!fp) {
             fprintf(stderr, "Soubor nelze otevřít: %s", soubor);
             free(soubor);
             return 1;
@@ -98,26 +100,32 @@ int main(int argc, char **argv) {
 
     // Vypsat do stdout při argumentu --
     // ./dohoda_ssps -- < data.toml > moje.pdf
-    if (argc > 1 && strcmp(argv[argumenty_pocet], "--") == 0) {
-        // Uložení PDF do paměti
-        HPDF_SaveToStream(pdf);
-        // Přetočení PDF streamu na začátek (pro postupné vypsání do stdout)
-        HPDF_ResetStream(pdf);
-        // Vypsání do stdout
-        for (;;) {
-            HPDF_BYTE buffer[4096];
-            HPDF_UINT32 buffer_len = sizeof(buffer);
-            HPDF_ReadFromStream(pdf, buffer, &buffer_len);
-            if (buffer_len == 0)
-                break;
-            if (fwrite(buffer, buffer_len, 1, stdout) != 1) {
-                fprintf(stderr, "Nelze vypsat do stdout");
-                break;
+    if (argc - 1 > argumenty_pocet) {
+        if (strcmp(argv[++argumenty_pocet], "--") == 0) {
+            pdf_do_stdout = true;
+            // Uložení PDF do paměti
+            HPDF_SaveToStream(pdf);
+            // Přetočení PDF streamu na začátek (pro postupné vypsání do stdout)
+            HPDF_ResetStream(pdf);
+            // Vypsání do stdout
+            for (;;) {
+                HPDF_BYTE buffer[4096];
+                HPDF_UINT32 buffer_len = sizeof(buffer);
+                HPDF_ReadFromStream(pdf, buffer, &buffer_len);
+                if (buffer_len == 0)
+                    break;
+                if (fwrite(buffer, buffer_len, 1, stdout) != 1) {
+                    fprintf(stderr, "Nelze vypsat do stdout");
+                    break;
+                }
             }
         }
 
+
+    }
+
     // Jinak uložit do souboru
-    } else {
+    if (pdf_do_stdout == false) {
         // Alokování paměti pro řetězec o velikosti předložky, příjmení a rezervy na .pdf
         char *pdf_soubor = malloc(strlen(PDF_SOUBOR_PREDLOZKA) + strlen(toml_konfigurace.jmeno) + 5);
         strcpy(pdf_soubor, PDF_SOUBOR_PREDLOZKA);
