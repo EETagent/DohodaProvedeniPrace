@@ -12,22 +12,20 @@
 void napoveda(char *program) {
     fprintf(stderr, "DohodaProvedeniPrace (https://github.com/EETagent/DohodaProvedeniPrace)\n");
     fprintf(stderr, "Použití programu: %s [-hnstf] < soubor\n", program);
-    fprintf(stderr, "-h Vypsání této nápovědy\n-n Seřazení položek od nejnovější\n-s Seřazení položek od nejstarší\n-t Vypsat počet odpracovaných hodin\n-f Cesta k souboru\n-- Vypsat PDF do stdout\n");
+    fprintf(stderr, "-h Vypsání této nápovědy\n-n Seřazení položek od nejnovější\n-s Seřazení položek od nejstarší\n-t Vypsat počet odpracovaných hodin\n-f Cesta k souboru\n-- Vypsat PDF do stdout (Musí být na konci příkazu)\n");
     fprintf(stderr, "\nPŘÍKLADY:\n");
     fprintf(stderr, "\t%s < vykaz.toml\n", program);
     fprintf(stderr, "\t%s -s < vykaz.toml\n", program);
     fprintf(stderr, "\t%s -- < vykaz.toml > dohoda.pdf\n", program);
     fprintf(stderr, "\t%s -n -f /home/thinkpad/vykaz.toml -- > dohoda.pdf\n", program);
-
-    exit(1);
 }
 
 int main(int argc, char **argv) {
     int argumenty;
     unsigned short argumenty_pocet = 1;
 
-    bool pocet_hodin_argument;
-    bool soubor_argument;
+    bool pocet_hodin_argument = false;
+    bool soubor_argument = false;
 
     char *soubor;
 
@@ -40,6 +38,7 @@ int main(int argc, char **argv) {
             // Vypsání nápovědy
             case 'h':
                 napoveda(argv[0]);
+                return 0;
             // Řazení od nejnovějšího
             case 'n':
                 razeni = OD_NEJNOVEJSIHO;
@@ -63,6 +62,7 @@ int main(int argc, char **argv) {
                 break;
             default:
                 napoveda(argv[0]);
+                return 1;
         }
     }
 

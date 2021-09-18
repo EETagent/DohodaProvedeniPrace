@@ -38,7 +38,7 @@ Použití programu: ./dohoda_ssps [-hnstf] < soubor
 -s Seřazení položek od nejstarší
 -t Vypsat počet odpracovaných hodin
 -f Cesta k souboru
--- Vypsat PDF do stdout
+-- Vypsat PDF do stdout (Musí být na konci příkazu)
 
 PŘÍKLADY:
 	./dohoda_ssps < vykaz.toml
