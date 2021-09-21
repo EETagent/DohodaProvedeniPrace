@@ -15,7 +15,7 @@
 
 // Maximální počet znaků, který se vejde do políček tabulky
 #define MALE_POLICKO_VELIKOST 8
-#define VELKE_POLICKO_VELIKOST 58
+#define VELKE_POLICKO_VELIKOST 70
 
 // Písmo
 #define FONT_VELKY 25
