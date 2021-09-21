@@ -232,8 +232,19 @@ int SSPS_DOHODA_Konfigurace_Free(SSPS_DOHODA_Konfigurace *konfigurace) {
 int SSPS_DOHODA_PocetHodin(SSPS_DOHODA_Konfigurace toml_konfigurace, float *hodiny) {
     char *endptr;
     for (int i = 0; i < toml_konfigurace.len; ++i) {
+        // Odstranění mezer z textového řetězce
+        char trim[strlen(toml_konfigurace.hodiny[i]) + 1];
+        int j=0;
+        for(int o = 0; toml_konfigurace.hodiny[i][o]!='\0'; o++)
+        {
+            if (toml_konfigurace.hodiny[i][o] != ' ' && toml_konfigurace.hodiny[i][o] != '\t')
+                trim[j++]=toml_konfigurace.hodiny[i][o];
+        }
+        trim[j]='\0';
+        toml_konfigurace.hodiny[i] = trim;
+        // Převod do typu float
         float prace_cas = strtof(toml_konfigurace.hodiny[i], &endptr);
-        if (*endptr != '\0') {
+        if (*endptr != '\0' && strcmp(endptr, "h") != 0) {
             return 1;
         }
         *hodiny += prace_cas;
