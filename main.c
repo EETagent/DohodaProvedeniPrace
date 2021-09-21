@@ -10,14 +10,14 @@
 
 // Nápověda k programu
 void napoveda(char *program) {
-    fprintf(stderr, "DohodaProvedeniPrace (https://github.com/EETagent/DohodaProvedeniPrace)\n");
-    fprintf(stderr, "Použití programu: %s [-hnstf] < soubor\n", program);
-    fprintf(stderr, "-h Vypsání této nápovědy\n-n Seřazení položek od nejnovější\n-s Seřazení položek od nejstarší\n-t Vypsat počet odpracovaných hodin\n-f Cesta k souboru\n-- Vypsat PDF do stdout (Musí být na konci příkazu)\n");
-    fprintf(stderr, "\nPŘÍKLADY:\n");
-    fprintf(stderr, "\t%s < vykaz.toml\n", program);
-    fprintf(stderr, "\t%s -s < vykaz.toml\n", program);
-    fprintf(stderr, "\t%s -- < vykaz.toml > dohoda.pdf\n", program);
-    fprintf(stderr, "\t%s -n -f /home/thinkpad/vykaz.toml -- > dohoda.pdf\n", program);
+    fprintf(stderr, u8"DohodaProvedeniPrace (https://github.com/EETagent/DohodaProvedeniPrace)\n");
+    fprintf(stderr, u8"Použití programu: %s [-hnstf] < soubor\n", program);
+    fprintf(stderr, u8"-h Vypsání této nápovědy\n-n Seřazení položek od nejnovější\n-s Seřazení položek od nejstarší\n-t Vypsat počet odpracovaných hodin\n-f Cesta k souboru\n-- Vypsat PDF do stdout (Musí být na konci příkazu)\n");
+    fprintf(stderr, u8"\nPŘÍKLADY:\n");
+    fprintf(stderr, u8"\t%s < vykaz.toml\n", program);
+    fprintf(stderr, u8"\t%s -s < vykaz.toml\n", program);
+    fprintf(stderr, u8"\t%s -- < vykaz.toml > dohoda.pdf\n", program);
+    fprintf(stderr, u8"\t%s -n -f /home/thinkpad/vykaz.toml -- > dohoda.pdf\n", program);
 }
 
 int main(int argc, char **argv) {
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     if (soubor_argument == true) {
         FILE *fp = fopen(soubor, "r");
         if (!fp) {
-            fprintf(stderr, "Soubor nelze otevřít: %s", soubor);
+            fprintf(stderr, u8"Soubor nelze otevřít: %s", soubor);
             free(soubor);
             return 1;
         }
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
     if (pocet_hodin_argument == true) {
         float pocet_hodin;
         SSPS_DOHODA_PocetHodin(toml_konfigurace, &pocet_hodin);
-        printf("%0.2f", pocet_hodin);
+        printf(u8"%0.2f", pocet_hodin);
         return 0;
     }
 
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
             if (buffer_len == 0)
                 break;
             if (fwrite(buffer, buffer_len, 1, stdout) != 1) {
-                fprintf(stderr, "Nelze vypsat do stdout");
+                fprintf(stderr, u8"Nelze vypsat do stdout");
                 break;
             }
         }
@@ -125,11 +125,11 @@ int main(int argc, char **argv) {
         // V případě že existuje nějaký výstup
         if (prijmeni) {
             // _Jungmann třeba
-            strcat(pdf_soubor, "_");
+            strcat(pdf_soubor, u8"_");
             strcat(pdf_soubor, prijmeni);
         }
         // Přidání koncovky
-        strcat(pdf_soubor, ".pdf");
+        strcat(pdf_soubor, u8".pdf");
         // Uložení PDF do souboru
         HPDF_SaveToFile(pdf, pdf_soubor);
         // Vyčištění paměti

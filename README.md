@@ -129,6 +129,6 @@ ninja test
 - [x] Optimalizace kódu a dokumentace
 - [x] Výpis počtu odpracovaných hodin
 - [x] Dynamický počet maximálních možných položek
-- [ ] UTF-8 ready omezení délky textu
+- [x] UTF-8 ready omezení délky textu
 - [ ] **Vícestránkový dokument**
 - [ ] **CGI interface a webový frontend**

@@ -6,28 +6,28 @@ typedef HPDF_Doc SSPS_DOHODA_PDF;
 /*
  * Název vytvořeného souboru
  */
-#define PDF_SOUBOR_PREDLOZKA "DPP"
+#define PDF_SOUBOR_PREDLOZKA u8"DPP"
 
 /*
  * Struktura s konfigurací PDF
  */
 typedef struct SSPS_DOHODA_Konfigurace {
     // Název dohody o provedení práce
-    char nazev[80];
+    char *nazev;
     // V jakém městě byla dohoda podepsána
-    char kde[20];
+    char *kde;
     // Jméno zaměstnance
-    char jmeno[50];
+    char *jmeno;
     // Rodné číslo zaměstnance
-    char rodne_cislo[12];
+    char *rodne_cislo;
     // Bankovní účet zaměstnance
-    char banka[30];
+    char *banka;
     // Místo narození zaměstnance
-    char misto_narozeni[50];
+    char *misto_narozeni;
     // Adresa zaměstnance
-    char adresa[80];
+    char *adresa;
     // Pojišťovna zaměstnance
-    char pojistovna[30];
+    char *pojistovna;
 
     // Nemusí být vyplněny všechny
     // 2D pole obsahující datum pracovní činnosti

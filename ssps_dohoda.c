@@ -13,24 +13,28 @@
 // Maximální počet položek na hlavní stránce A4
 #define MAX_POLOZEK 14
 
+// Maximální počet znaků, který se vejde do políček tabulky
+#define MALE_POLICKO_VELIKOST 8
+#define VELKE_POLICKO_VELIKOST 58
+
 // Písmo
 #define FONT_VELKY 25
 #define FONT_NORMALNI 12
 #define FONT_MALY 10
 
 // Nadpis dokumentu
-#define NADPIS "VÝKAZ PRÁCE"
+#define NADPIS u8"VÝKAZ PRÁCE"
 // Podnadpis dokumentu
-#define PODNADPIS "DOHODA O PROVEDENÍ PRÁCE | DOHODA O PRACOVNÍ ČINNOSTI"
+#define PODNADPIS u8"DOHODA O PROVEDENÍ PRÁCE | DOHODA O PRACOVNÍ ČINNOSTI"
 
 // Popisky
-#define NAZEV_TEXT "Název dohody: "
-#define JMENO_TEXT "Jméno, příjmení zaměstnance: "
-#define RODNECISLO_TEXT "Rodné číslo: "
-#define BANKA_TEXT "Č. účtu/kód banky: "
-#define MISTO_TEXT "Místo narození: "
-#define ADRESA_TEXT "Adresa zaměstnance: "
-#define POJISTOVNA_TEXT "Zdravotní pojištovna - název a číslo: "
+#define NAZEV_TEXT u8"Název dohody: "
+#define JMENO_TEXT u8"Jméno, příjmení zaměstnance: "
+#define RODNECISLO_TEXT u8"Rodné číslo: "
+#define BANKA_TEXT u8"Č. účtu/kód banky: "
+#define MISTO_TEXT u8"Místo narození: "
+#define ADRESA_TEXT u8"Adresa zaměstnance: "
+#define POJISTOVNA_TEXT u8"Zdravotní pojištovna - název a číslo: "
 
 #define POPISEK_ODSAZENI 160
 #define POPISEK_ROZESTUPY 30
@@ -48,6 +52,8 @@ int toml_datum_t_bubblesort(toml_datum_t prace_polozky[][4], unsigned int len, S
 // Porovná dvě data ve formátu dd.mm.
 int porovnani_mesicu_dnu(char *datum_1, char *datum_2);
 
+int utf8_bytelen_podle_poctu_znaku(const char * s, int pocet_znaku);
+
 // Přidání textu do dokumentu
 void HPDF_Page_AddText(HPDF_Page page, HPDF_REAL x, HPDF_REAL y, char *text);
 
@@ -64,14 +70,14 @@ jmp_buf jmp_pdf, jmp_toml;
 
 // Chyby při práci s PDF, zajímavá věc ten longjmp a setjmp
 void pdf_error_handler(HPDF_STATUS error, __attribute__((unused)) void *detail, __attribute__((unused)) void *data) {
-    fprintf(stderr, "CHYBA: %04X\n" \
+    fprintf(stderr, u8"CHYBA: %04X\n" \
     "http://libharu.sourceforge.net/error_handling.html#The_list_of_error_code_\n", (HPDF_UINT) error);
     longjmp(jmp_pdf, 1);
 }
 
 // Chyby při práci s TOML
 void toml_error_handler(char *error) {
-    fprintf(stderr, "CHYBA: %s\n", error);
+    fprintf(stderr, u8"CHYBA: %s\n", error);
     longjmp(jmp_toml, 1);
 }
 
@@ -94,7 +100,7 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
     }
 
     if (!toml) {
-        fprintf(stderr, "CHYBA: %s\n", errbuf);
+        fprintf(stderr, u8"CHYBA: %s\n", errbuf);
         return 1;
     }
     // V případě chyby kdekoliv během zpracovávání tomlu
@@ -103,22 +109,22 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
         return 1;
     }
     // Část [dohoda]
-    toml_table_t *dohoda_tabulka = toml_table_in(toml, "dohoda");
+    toml_table_t *dohoda_tabulka = toml_table_in(toml, u8"dohoda");
     if (!dohoda_tabulka)
-        toml_error_handler("Pole [dohoda] nenalezeno");
+        toml_error_handler(u8"Pole [dohoda] nenalezeno");
     // Část [zamestnanec]
-    toml_table_t *zamestnanec_tabulka = toml_table_in(toml, "zamestnanec");
+    toml_table_t *zamestnanec_tabulka = toml_table_in(toml, u8"zamestnanec");
     if (!zamestnanec_tabulka)
-        toml_error_handler("Pole [zamestnanec] nenalezeno");
+        toml_error_handler(u8"Pole [zamestnanec] nenalezeno");
 
     // Hodnota název v části [dohoda]
-    toml_datum_t nazev_hodnota = toml_string_in(dohoda_tabulka, "nazev");
+    toml_datum_t nazev_hodnota = toml_string_in(dohoda_tabulka, u8"nazev");
     if (!nazev_hodnota.ok)
-        toml_error_handler("Položká nazev = nenalezena");
+        toml_error_handler(u8"Položká nazev = nenalezena");
     // Hodnota kde v části [dohoda]
-    toml_datum_t kde_hodnota = toml_string_in(dohoda_tabulka, "kde");
+    toml_datum_t kde_hodnota = toml_string_in(dohoda_tabulka, u8"kde");
     if (!kde_hodnota.ok)
-        toml_error_handler("Položká kde = nenalezena");
+        toml_error_handler(u8"Položká kde = nenalezena");
 
     // Hodnoty v části [zamestnanec]
     // zamestnanec_polozky[0] = jmeno
@@ -131,14 +137,14 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
     for (int i = 0; i < 6; i++) {
         const char *key = toml_key_in(zamestnanec_tabulka, i);
         if (!key)
-            toml_error_handler("V tabulce [zamestnanec] nebyly nalezeny všechny položky");
+            toml_error_handler(u8"V tabulce [zamestnanec] nebyly nalezeny všechny položky");
         zamestnanec_polozky[i] = toml_string_in(zamestnanec_tabulka, key);
     }
 
     // List částí [[prace]], není znám jejich přesný počet
-    toml_array_t *prace_tabulky = toml_array_in(toml, "prace");
+    toml_array_t *prace_tabulky = toml_array_in(toml, u8"prace");
     if (!prace_tabulky)
-        toml_error_handler("Tabulka [[prace]] nenalezena");
+        toml_error_handler(u8"Tabulka [[prace]] nenalezena");
     // Počet instanci [[prace]]
     unsigned int prace_velikost = toml_array_nelem(prace_tabulky);
 
@@ -155,7 +161,7 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
         for (int o = 0; o < 4; o++) {
             const char *key = toml_key_in(tabulka, o);
             if (!key)
-                toml_error_handler("V tabulce [[prace]] nebyly nalezeny všechny položky");
+                toml_error_handler(u8"V tabulce [[prace]] nebyly nalezeny všechny položky");
             prace_polozky[i][o] = toml_string_in(tabulka, key);
         }
     }
@@ -164,7 +170,7 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
     if (razeni_polozek != NERADIT) {
         // Seřazení položek algoritmem bubblesort
         if (toml_datum_t_bubblesort(prace_polozky, prace_velikost, razeni_polozek) == 1)
-            toml_error_handler("Nepovedlo se seřadit položky v dokumentu");
+            toml_error_handler(u8"Nepovedlo se seřadit položky v dokumentu");
     }
 
     // Konfigurace
@@ -180,24 +186,24 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
     konf.poznamka = malloc(konf.len * sizeof (char *));
 
     // Údaje o dohodě
-    strncpy(konf.nazev, nazev_hodnota.u.s, sizeof(konf.nazev));
-    strncpy(konf.kde, kde_hodnota.u.s, sizeof(konf.kde));
+    konf.nazev = strndup(nazev_hodnota.u.s, utf8_bytelen_podle_poctu_znaku(nazev_hodnota.u.s, 55));
+    konf.kde = strndup(kde_hodnota.u.s, utf8_bytelen_podle_poctu_znaku(kde_hodnota.u.s, 30));
     // Údaje o zaměstnanci
-    strncpy(konf.jmeno, zamestnanec_polozky[0].u.s, sizeof(konf.jmeno));
-    strncpy(konf.rodne_cislo, zamestnanec_polozky[1].u.s, sizeof(konf.rodne_cislo));
-    strncpy(konf.banka, zamestnanec_polozky[2].u.s, sizeof(konf.banka));
-    strncpy(konf.misto_narozeni, zamestnanec_polozky[3].u.s, sizeof(konf.misto_narozeni));
-    strncpy(konf.adresa, zamestnanec_polozky[4].u.s, sizeof(konf.adresa));
-    strncpy(konf.pojistovna, zamestnanec_polozky[5].u.s, sizeof(konf.pojistovna));
+    konf.jmeno = strndup(zamestnanec_polozky[0].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[0].u.s, 50));
+    konf.rodne_cislo = strndup(zamestnanec_polozky[1].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[1].u.s, 25));
+    konf.banka = strndup(zamestnanec_polozky[2].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[2].u.s, 25));
+    konf.misto_narozeni = strndup(zamestnanec_polozky[3].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[3].u.s, 55));
+    konf.adresa = strndup(zamestnanec_polozky[4].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[4].u.s, 55));
+    konf.pojistovna = strndup(zamestnanec_polozky[5].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[5].u.s, 45));
 
     // Údaje o jednotlivých činnostech
     for (int i = 0; i < konf.len; i++) {
         // Inicializace všech vnořených polí
         // hodnota[x][x] az hodnota[y][y]
-        konf.datum[i] = strdup(prace_polozky[i][0].u.s);
-        konf.cinnost[i] = strdup(prace_polozky[i][1].u.s);
-        konf.hodiny[i] = strdup(prace_polozky[i][2].u.s);
-        konf.poznamka[i] = strdup(prace_polozky[i][3].u.s);
+        konf.datum[i] = strndup(prace_polozky[i][0].u.s, utf8_bytelen_podle_poctu_znaku(prace_polozky[i][0].u.s, MALE_POLICKO_VELIKOST));
+        konf.cinnost[i] = strndup(prace_polozky[i][1].u.s, utf8_bytelen_podle_poctu_znaku(prace_polozky[i][1].u.s, VELKE_POLICKO_VELIKOST));
+        konf.hodiny[i] = strndup(prace_polozky[i][2].u.s, utf8_bytelen_podle_poctu_znaku(prace_polozky[i][2].u.s, MALE_POLICKO_VELIKOST));
+        konf.poznamka[i] = strndup(prace_polozky[i][3].u.s, utf8_bytelen_podle_poctu_znaku(prace_polozky[i][3].u.s, MALE_POLICKO_VELIKOST));
     }
 
     // Vyčištění paměti zabrané stringy ve struktuře
@@ -221,10 +227,10 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
 
 // Vyčištění paměti alokované v rámci struktury SSPS_DOHODA_Konfigurace
 int SSPS_DOHODA_Konfigurace_Free(SSPS_DOHODA_Konfigurace *konfigurace) {
-    free(*konfigurace->datum);
-    free(*konfigurace->cinnost);
-    free(*konfigurace->poznamka);
-    free(*konfigurace->hodiny);
+    free(konfigurace->datum); free(konfigurace->cinnost); free(konfigurace->poznamka); free(konfigurace->hodiny);
+    free(konfigurace->nazev); free(konfigurace->kde);
+    free(konfigurace->jmeno); free(konfigurace->adresa); free(konfigurace->rodne_cislo); free(konfigurace->misto_narozeni);
+    free(konfigurace->banka); free(konfigurace->pojistovna);
     return 0;
 }
 
@@ -266,7 +272,7 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc 
     // Vytvoření PDF
     pdf = HPDF_New((HPDF_Error_Handler) pdf_error_handler, NULL);
     if (!pdf) {
-        fprintf(stderr, "Chyba: Nelze vytvořit PDF\n");
+        fprintf(stderr, u8"Chyba: Nelze vytvořit PDF\n");
         return 1;
     }
     // V případě chyby kdekoliv při zpracovávání PDF nás longjmp hodí zase sem
@@ -277,12 +283,12 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc 
 
     // UTF8 - Důležité pro podporu českého jazyka
     HPDF_UseUTFEncodings(pdf);
-    HPDF_SetCurrentEncoder(pdf, "UTF-8");
+    HPDF_SetCurrentEncoder(pdf, u8"UTF-8");
 
     // Vlastnosti PDF
-    HPDF_SetInfoAttr(pdf, HPDF_INFO_TITLE, "Dohoda o provedení práce");
-    HPDF_SetInfoAttr(pdf, HPDF_INFO_SUBJECT, "Dohoda o provedení práce");
-    HPDF_SetInfoAttr(pdf, HPDF_INFO_CREATOR, "Smíchovská střední průmyslová škola");
+    HPDF_SetInfoAttr(pdf, HPDF_INFO_TITLE, u8"Dohoda o provedení práce");
+    HPDF_SetInfoAttr(pdf, HPDF_INFO_SUBJECT, u8"Dohoda o provedení práce");
+    HPDF_SetInfoAttr(pdf, HPDF_INFO_CREATOR, u8"Smíchovská střední průmyslová škola");
 
     // První stránka
     pdf_strana = HPDF_AddPage(pdf);
@@ -325,8 +331,8 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc 
     HPDF_Page_SetLineWidth(pdf_strana, 0.5f);
     // Referenční položka
     SSPS_Page_AddPolozka(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 330, 35,
-                         "Datum",
-                         "Činnost,", "Hodiny", "Pozn.");
+                         u8"Datum",
+                         u8"Činnost,", u8"Hodiny", u8"Pozn.");
 
     // Odsazení pro prázdné stránky v druhém for
     int odsazeni = 0;
@@ -348,23 +354,23 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc 
     // Podpis zaměstnance, neměnný
     HPDF_Page_SetFontAndSize(pdf_strana, pismo_regular, FONT_NORMALNI);
     // V jakém městě byla dohoda podepsána
-    SSPS_Page_AddPopisek(pdf_strana, " dne", toml_konfigurace.kde, LEVA_POLOVINA_DOKUMENTU(pdf_strana),
+    SSPS_Page_AddPopisek(pdf_strana, u8" dne", toml_konfigurace.kde, LEVA_POLOVINA_DOKUMENTU(pdf_strana),
                          HPDF_Page_GetHeight(pdf_strana) - 680);
     HPDF_Page_AddText(pdf_strana, PRAVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 680,
-                      "Podpis zaměstnance: ...............................");
+                      u8"Podpis zaměstnance: ...............................");
     // Podpis ředitele školy, neměnný
     HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 730,
-                      "Schválení ředitelem školy");
+                      u8"Schválení ředitelem školy");
     HPDF_Page_AddText(pdf_strana, PRAVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 730,
-                      "Podpis ředitele školy: ...............................");
+                      u8"Podpis ředitele školy: ...............................");
     // Informace pro odevzdání dokumentu, neměnné
     HPDF_Page_SetFontAndSize(pdf_strana, pismo_regular, FONT_NORMALNI - 1);
     HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 760,
-                      "Kompletně vyplněný a podepsaný výkaz je nutné odevzdat vždy do 26. v měsíci");
+                      u8"Kompletně vyplněný a podepsaný výkaz je nutné odevzdat vždy do 26. v měsíci");
     HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 780,
-                      "Výkaz za prosinec - do 20. prosince");
+                      u8"Výkaz za prosinec - do 20. prosince");
     HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 800,
-                      "Vždy lze (po řádném vyplnění a podepsání) zaslat jako sken na: dita.binderova@ssps.cz");
+                      u8"Vždy lze (po řádném vyplnění a podepsání) zaslat jako sken na: dita.binderova@ssps.cz");
 
     *pdf_in = pdf;
 
@@ -513,4 +519,19 @@ int porovnani_mesicu_dnu(char *datum_1, char *datum_2) {
     }
     // Jinak je větší druhé datum
     return 1;
+}
+
+int utf8_bytelen_podle_poctu_znaku(const char * s, int pocet_znaku) {
+    int i = 0, len = 0, c = 0;
+    while(s[i]) {
+        ++c; ++i;
+        // s[i] není část multibyte znaku
+        if ((s[i] & 0xc0) != 0x80) {
+            ++len;
+            if(len == pocet_znaku) {
+                break;
+            }
+        }
+    }
+    return c;
 }
