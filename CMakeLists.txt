@@ -5,12 +5,27 @@ include(ExternalProject)
 # C11/17
 set(CMAKE_C_STANDARD 11)
 
-# Testy
-enable_testing()
-add_subdirectory (tests)
+# -DBUILD_CLI=
+option(BUILD_CLI "Kompilace konzolového rozhraní" ON)
+# -DBUILD_GUI=
+option(BUILD_GUI "Kompilace GTK4 grafického rozhraní" OFF)
+# -dBUILD_TESTS=
+option(BUILD_TESTS "Kompilace testů" OFF)
+
+if (BUILD_TESTS)
+    # Testy
+    enable_testing()
+    add_subdirectory (tests)
+endif ()
 
 # Je potřeba zlib komprese
 find_package(ZLIB REQUIRED)
+
+if (BUILD_GUI)
+    # Grafické rozhraní využívá framework GTK4
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GTK4 REQUIRED gtk4)
+endif ()
 
 # Název binárního souboru
 set(EXECUTABLE_NAME dohoda_ssps)
@@ -50,19 +65,29 @@ link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
 add_library(ssps_dohoda STATIC ssps_dohoda.c)
 add_dependencies(ssps_dohoda libharu libtoml)
 
+# Pokud je povoleno kompilování CLI rozhraní
+if (BUILD_CLI)
+    add_executable(${EXECUTABLE_NAME} main.c)
+    set(LINK_LIBRARIES
+            ssps_dohoda
+            hpdfs
+            toml
+            m
+            ${ZLIB_LIBRARIES})
+    target_link_libraries(${EXECUTABLE_NAME} ${LINK_LIBRARIES})
+endif ()
 
-add_executable(${EXECUTABLE_NAME} main.c)
-add_dependencies(${EXECUTABLE_NAME} libharu libtoml)
-set(LINK_LIBRARIES
-        ssps_dohoda
-        hpdfs
-        toml
-        m
-        ${ZLIB_LIBRARIES})
-target_link_libraries(${EXECUTABLE_NAME} ${LINK_LIBRARIES})
-
-#add_custom_command(
-#        TARGET DohodaProvedeniPrace POST_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E copy
-#        ${CMAKE_SOURCE_DIR}/fonty/LiberationSans-Regular.ttf
-#        ${CMAKE_CURRENT_BINARY_DIR}/LiberationSans-Regular.ttf)
+# Pokud je povoleno kompilování GUI rozhraní
+if (BUILD_GUI)
+    add_executable(${EXECUTABLE_NAME}_gui gui/main_gui.c)
+    set(LINK_LIBRARIES
+            ssps_dohoda
+            hpdfs
+            toml
+            m
+            ${ZLIB_LIBRARIES}
+            ${GTK4_LIBRARIES})
+    target_link_libraries(${EXECUTABLE_NAME}_gui ${LINK_LIBRARIES})
+    target_include_directories(${EXECUTABLE_NAME}_gui PRIVATE ${GTK4_INCLUDE_DIRS})
+    target_link_directories(${EXECUTABLE_NAME}_gui PRIVATE ${GTK4_LIBRARY_DIRS})
+endif ()

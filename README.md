@@ -123,6 +123,14 @@ Součástí projektu jsou i zabudované testy:
 ninja test
 ```
 
+## Grafické rozhraní
+
+![GTK4 grafické rozhraní](.github/img/dohoda_gui.png?raw=true)
+
+Alternativa k terminálovému programu. GUI napsané v nejnovějším přenosném frameworku GTK4. 
+
+Zatím není propojenou s knihovnou, jinak je UI plně funkční, vytváří TOML konfiguraci, která je posléze vypsána do STDOUT.
+
 ## TODO
 
 - [x] Řazení podle data
