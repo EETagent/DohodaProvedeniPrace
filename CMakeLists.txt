@@ -67,7 +67,7 @@ add_dependencies(ssps_dohoda libharu libtoml)
 
 # Pokud je povoleno kompilování CLI rozhraní
 if (BUILD_CLI)
-    add_executable(${EXECUTABLE_NAME} main.c)
+    add_executable(${EXECUTABLE_NAME} cli/main.c)
     set(LINK_LIBRARIES
             ssps_dohoda
             hpdfs
@@ -79,7 +79,7 @@ endif ()
 
 # Pokud je povoleno kompilování GUI rozhraní
 if (BUILD_GUI)
-    add_executable(${EXECUTABLE_NAME}_gui gui/main_gui.c)
+    add_executable(${EXECUTABLE_NAME}_gui gui/main.c)
     set(LINK_LIBRARIES
             ssps_dohoda
             hpdfs

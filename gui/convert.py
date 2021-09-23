@@ -21,7 +21,7 @@ if __name__ == "__main__":
     stripSize=64
 
     output = open("dohodaprovedeniprace.ui.h", 'w')
-    output.write("static const char gtk_builder_ui [] = \n{\n")
+    output.write("const char gtk_builder_ui [] = \n{\n")
     while baseOffset < byteCount:
         skipTrailingQuote = 0
         if baseOffset+stripSize < byteCount and strippedXml[baseOffset+stripSize] == '"':
