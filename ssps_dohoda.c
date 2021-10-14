@@ -258,6 +258,15 @@ int SSPS_DOHODA_PocetHodin(SSPS_DOHODA_Konfigurace toml_konfigurace, float *hodi
     return 0;
 }
 
+// Funkce pro vypsání celkové částky za odpracované hodiny
+int SSPS_DOHODA_PocetPenez(SSPS_DOHODA_Konfigurace toml_konfigurace, float *penize) {
+    float hodiny;
+    if (SSPS_DOHODA_PocetHodin(toml_konfigurace, &hodiny) != 0)
+        return 1;
+    *penize = hodiny * SABLOVA_KONSTANTA;
+    return 0;
+}
+
 // Funkce pro vytvoření dohody ve formě PDF, výstup uložen do pdf_in
 int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc *pdf_in) {
 

@@ -1,4 +1,9 @@
 /*
+ * Hodinové ohodnocení
+ */
+#define SABLOVA_KONSTANTA 200
+
+/*
  * Český alias pro HPDF_Doc
  */
 typedef HPDF_Doc SSPS_DOHODA_PDF;
@@ -96,3 +101,9 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, SSPS_DOHO
  * Vrací 1 v případě chyby, 0 v případě úspěšného provedení
  */
 int SSPS_DOHODA_PocetHodin(SSPS_DOHODA_Konfigurace toml_konfigurace, float *hodiny);
+
+/*
+ * Funkce pro vypsání celkové částky za odpracované hodiny
+ * Vrací 1 v případě chyby, 0 v případě úspěšného provedení
+ */
+int SSPS_DOHODA_PocetPenez(SSPS_DOHODA_Konfigurace toml_konfigurace, float *penize);

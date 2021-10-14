@@ -12,7 +12,7 @@
 void napoveda(char *program) {
     fprintf(stderr, u8"DohodaProvedeniPrace (https://github.com/EETagent/DohodaProvedeniPrace)\n");
     fprintf(stderr, u8"Použití programu: %s [-hnstf] < soubor\n", program);
-    fprintf(stderr, u8"-h Vypsání této nápovědy\n-n Seřazení položek od nejnovější\n-s Seřazení položek od nejstarší\n-t Vypsat počet odpracovaných hodin\n-f Cesta k souboru\n-- Vypsat PDF do stdout (Musí být na konci příkazu)\n");
+    fprintf(stderr, u8"-h Vypsání této nápovědy\n-n Seřazení položek od nejnovější\n-s Seřazení položek od nejstarší\n-t Vypsat počet odpracovaných hodin\n-p Vypsat celkovou částku za odpracované hodiny\n-f Cesta k souboru\n-- Vypsat PDF do stdout (Musí být na konci příkazu)\n");
     fprintf(stderr, u8"\nPŘÍKLADY:\n");
     fprintf(stderr, u8"\t%s < vykaz.toml\n", program);
     fprintf(stderr, u8"\t%s -s < vykaz.toml\n", program);
@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
     int argumenty;
 
     bool pocet_hodin_argument = false;
+    bool pocet_penez_argument = false;
     bool soubor_argument = false;
     bool pdf_do_stdout = false;
 
@@ -33,7 +34,7 @@ int main(int argc, char **argv) {
     SSPS_DOHODA_Konfigurace toml_konfigurace;
     SSPS_DOHODA_RAZENI_POLOZEK razeni = NERADIT;
 
-    while ((argumenty = getopt(argc, argv, "hnstf:")) != -1) {
+    while ((argumenty = getopt(argc, argv, "hnstpf:")) != -1) {
         switch (argumenty) {
             // Vypsání nápovědy
             case 'h':
@@ -55,6 +56,10 @@ int main(int argc, char **argv) {
             case 'f':
                 soubor_argument = true;
                 soubor = strdup(optarg);
+                break;
+            // Vypsání celkové částky za odpracované hodiny
+            case 'p':
+                pocet_penez_argument = true;
                 break;
             default:
                 napoveda(argv[0]);
@@ -78,6 +83,14 @@ int main(int argc, char **argv) {
         // Načtení TOML konfigurace ze standardního vstupu
         if (SSPS_DOHODA_Konfigurace_TOML(stdin, &toml_konfigurace, SOUBOR, razeni) == 1)
             return 1;
+    }
+
+    // Vypsání celkové částky za odpracované hodiny
+    if (pocet_penez_argument == true) {
+        float pocet_penez;
+        SSPS_DOHODA_PocetPenez(toml_konfigurace, &pocet_penez);
+        printf(u8"%0.2f Kč", pocet_penez);
+        return 0;
     }
 
     // Vypsání celkového počtu hodin
