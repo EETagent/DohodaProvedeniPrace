@@ -38,6 +38,7 @@ Použití programu: ./dohoda_ssps [-hnstf] < soubor
 -s Seřazení položek od nejstarší
 -t Vypsat počet odpracovaných hodin
 -p Vypsat celkovou částku za odpracované hodiny
+-w Živé sledování změn v souboru - watch
 -f Cesta k souboru
 -- Vypsat PDF do stdout (Musí být na konci příkazu)
 
