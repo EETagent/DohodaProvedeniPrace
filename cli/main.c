@@ -7,7 +7,7 @@
 
 #include <hpdf.h> // libharu, tvorba PDF
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__APPLE__)
 #include <sys/ioctl.h> // Pro ioctl()
 #include <sys/inotify.h> // Pro monitorování změn v souborech
 #endif
@@ -127,9 +127,10 @@ int main(int argc, char **argv) {
         ulozit_do_souboru(&pdf, &toml_konfigurace);
 
     if (watch_argument == true) {
-        #ifdef WIN32
-        cli_error_handler(u8"Neimplementováno pro WIN32");
+        #if defined(WIN32) || defined(__APPLE__)
+        cli_error_handler(u8"Neimplementováno pro WIN32 a macOS");
         #endif
+        #if !defined(WIN32) && !defined(__APPLE__)
         bool while_smycka_ukoncena = false;
         int fd = inotify_init();
         // Nelze vytvořit inotify
@@ -176,6 +177,7 @@ int main(int argc, char **argv) {
         // Ukončení monitoringu
         inotify_rm_watch(fd, wd);
         close(fd);
+        #endif
     }
 
     if (setjmp(jmp)) {
