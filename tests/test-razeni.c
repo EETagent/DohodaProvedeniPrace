@@ -14,7 +14,7 @@
 int main(void) {
     // Hash nepoškozeného PDF
     const char pdf_hash_reference[33] = "4ae4a5e69dfc7367214ff0fd44634e25";
-    char pdf_hash_opravodvy[33];
+    char pdf_hash_opravodvy[33] = {'\0'};;
     char temp[4];
 
     HPDF_BYTE buffer[4096];
