@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.21)
 project(DohodaProvedeniPrace C)
 include(ExternalProject)
 
-# C11/17
-set(CMAKE_C_STANDARD 11)
+# C23
+set(CMAKE_C_STANDARD 23)
 
 # -DBUILD_CLI=
 option(BUILD_CLI "Kompilace konzolového rozhraní" ON)
