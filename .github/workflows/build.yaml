@@ -38,15 +38,27 @@ jobs:
         run: |
           set(ENV{CC} ${{ matrix.config.cc }})
           set(ENV{CXX} ${{ matrix.config.cxx }})
-          execute_process(
-            COMMAND cmake
-              -S .
-              -B build
-              -G Ninja
-              -D CMAKE_MAKE_PROGRAM=ninja
-              -D BUILD_TESTS=on
-            RESULT_VARIABLE result
-          )
+          if ("${{ runner.os }}" STREQUAL "Windows")
+            execute_process(
+              COMMAND cmake
+                -S .
+                -B build
+                -G Ninja
+                -D CMAKE_MAKE_PROGRAM=ninja
+                -D BUILD_TESTS=off
+              RESULT_VARIABLE result
+            )
+          else()
+            execute_process(
+              COMMAND cmake
+                -S .
+                -B build
+                -G Ninja
+                -D CMAKE_MAKE_PROGRAM=ninja
+                -D BUILD_TESTS=on
+              RESULT_VARIABLE result
+            )
+          endif()
           if (NOT result EQUAL 0)
             message(FATAL_ERROR "Bad exit status")
           endif()
@@ -69,6 +81,7 @@ jobs:
                 message(FATAL_ERROR "Build failed")
               endif()
       - name: Testy 🔨
+        if: runner.os != 'windows-latest'
         shell: cmake -P {0}
         run: |
           execute_process(
