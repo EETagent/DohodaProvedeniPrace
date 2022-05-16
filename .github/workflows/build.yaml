@@ -12,18 +12,21 @@ jobs:
         config:
           - {
               name: "Windows Latest MinGW",
+              artifact: "windows.tar.xz",
               os: windows-latest,
               cc: "gcc",
               cxx: "g++",
             }
           - {
               name: "Ubuntu Latest GCC",
+              artifact: "ubuntu.tar.xz",
               os: ubuntu-latest,
               cc: "gcc",
               cxx: "g++",
             }
           - {
               name: "macOS Latest Clang",
+              artifact: "macos.tar.xz",
               os: macos-latest,
               cc: "clang",
               cxx: "clang++",
@@ -98,3 +101,13 @@ jobs:
             message("::error::${test_results}")
             message(FATAL_ERROR "Running tests failed!")
           endif()
+      - name: Strip artefaktů 🔥
+        run: cmake --install build --prefix instdir --strip
+      - name: Zabalení artefaktů do tar.xz 📦
+        working-directory: instdir
+        run: cmake -E tar cJfv ../${{ matrix.config.artifact }} .
+      - name: Upload 🍔
+        uses: actions/upload-artifact@v3
+        with:
+          path: ./${{ matrix.config.artifact }}
+          name: ${{ matrix.config.artifact }}
