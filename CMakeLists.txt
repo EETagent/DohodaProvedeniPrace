@@ -75,6 +75,7 @@ if (BUILD_CLI)
             m
             ${ZLIB_LIBRARIES})
     target_link_libraries(${EXECUTABLE_NAME} ${LINK_LIBRARIES})
+    install(TARGETS ${EXECUTABLE_NAME} DESTINATION bin)
 endif ()
 
 # Pokud je povoleno kompilování GUI rozhraní
@@ -90,4 +91,5 @@ if (BUILD_GUI)
     target_link_libraries(${EXECUTABLE_NAME}_gui ${LINK_LIBRARIES})
     target_include_directories(${EXECUTABLE_NAME}_gui PRIVATE ${GTK4_INCLUDE_DIRS})
     target_link_directories(${EXECUTABLE_NAME}_gui PRIVATE ${GTK4_LIBRARY_DIRS})
+    install(TARGETS ${EXECUTABLE_NAME}_gui DESTINATION bin)
 endif ()

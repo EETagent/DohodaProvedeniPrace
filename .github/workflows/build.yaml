@@ -101,7 +101,7 @@ jobs:
             message("::error::${test_results}")
             message(FATAL_ERROR "Running tests failed!")
           endif()
-      - name: Strip artefaktů 🔥
+      - name: Strip artefaktů a instalace 🔥
         run: cmake --install build --prefix instdir --strip
       - name: Zabalení artefaktů do tar.xz 📦
         working-directory: instdir
