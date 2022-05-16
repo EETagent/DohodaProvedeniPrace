@@ -46,6 +46,16 @@
 // Výpočet odsazení pro umístění do prostřed dokumentu
 #define PRAVA_POLOVINA_DOKUMENTU(stranka) HPDF_Page_GetWidth(stranka) - 300
 
+#if defined(_WIN32) || defined(_WIN64)
+char *strndup( const char *s1, size_t n)
+{
+    char *copy= (char*)malloc( n+1 );
+    memcpy( copy, s1, n );
+    copy[n] = 0;
+    return copy;
+};
+#endif
+
 // Seřadí prvky v toml_datum_t prace_polozky[][4]
 int toml_datum_t_bubblesort(toml_datum_t prace_polozky[][4], unsigned int len, SSPS_DOHODA_RAZENI_POLOZEK razeni);
 
