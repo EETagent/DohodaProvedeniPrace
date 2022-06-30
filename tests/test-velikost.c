@@ -1,4 +1,5 @@
 #include <stdio.h> // Standardní vstup a výstup
+#include <stdbool.h> // Boolean datové typy
 
 #include <hpdf.h> // libharu, tvorba PDF
 
@@ -20,7 +21,7 @@ int main(void) {
         return 1;
     fclose(toml_soubor);
 
-    if (SSPS_DOHODA_SepsatDohodu(toml_konfigurace, &pdf) == 1)
+    if (SSPS_DOHODA_SepsatDohodu(toml_konfigurace, &pdf, false) == 1)
         return 1;
 
 
