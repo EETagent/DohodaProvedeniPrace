@@ -1,4 +1,5 @@
 #include <stdio.h> // Standardní vstup a výstup
+#include <stdbool.h> // Boolean datové typy
 #include <string.h> // Práce s textovými řetězci
 #include <setjmp.h> // Zpracovávání chyb přes jump
 
@@ -278,7 +279,7 @@ int SSPS_DOHODA_PocetPenez(SSPS_DOHODA_Konfigurace toml_konfigurace, float *peni
 }
 
 // Funkce pro vytvoření dohody ve formě PDF, výstup uložen do pdf_in
-int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc *pdf_in) {
+int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc *pdf_in, bool zastupkyne_reditele_legacy) {
 
     // PDF dokument
     HPDF_Doc pdf;
@@ -388,8 +389,15 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc 
                       u8"Kompletně vyplněný a podepsaný výkaz je nutné odevzdat vždy do 26. v měsíci");
     HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 780,
                       u8"Výkaz za prosinec - do 20. prosince");
-    HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 800,
-                      u8"Vždy lze (po řádném vyplnění a podepsání) zaslat jako sken na: dita.binderova@ssps.cz");
+    
+    if (zastupkyne_reditele_legacy) {
+        HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 800,
+                          u8"Vždy lze (po řádném vyplnění a podepsání) zaslat jako sken na: dita.binderova@ssps.cz");
+    }
+    else {
+        HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 800,
+                          u8"Vždy lze (po řádném vyplnění a podepsání) zaslat jako sken na: aramis.tochjan@ssps.cz");
+    }
 
     *pdf_in = pdf;
 

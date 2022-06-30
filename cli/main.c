@@ -32,6 +32,7 @@ int main(int argc, char **argv) {
     bool pocet_penez_argument = false;
     bool soubor_argument = false;
     bool watch_argument = false;
+    bool binderova_argument = false;
     bool pdf_do_stdout = false;
 
     char *soubor;
@@ -40,7 +41,7 @@ int main(int argc, char **argv) {
     SSPS_DOHODA_Konfigurace toml_konfigurace;
     SSPS_DOHODA_RAZENI_POLOZEK razeni = NERADIT;
 
-    while ((argumenty = getopt(argc, argv, "hnstpwf:")) != -1) {
+    while ((argumenty = getopt(argc, argv, "hnstpwdf:")) != -1) {
         switch (argumenty) {
             // Vypsání nápovědy
             case 'h':
@@ -65,6 +66,10 @@ int main(int argc, char **argv) {
             // Sledování změn v souboru
             case 'w':
                 watch_argument = true;
+                break;
+            // Vrácení dita.binderova@ssps.cz do výkazu
+            case 'd':
+                binderova_argument = true;
                 break;
             // Načtení konfigurace přes cestu k souboru jako argument
             case 'f':
@@ -111,7 +116,7 @@ int main(int argc, char **argv) {
     }
 
     // Vytvoření PDF
-    if (SSPS_DOHODA_SepsatDohodu(toml_konfigurace, &pdf) == 1)
+    if (SSPS_DOHODA_SepsatDohodu(toml_konfigurace, &pdf, binderova_argument) == 1)
         cli_error_handler(u8"Nepovedlo se vytvořit PDF");
 
     // Vypsat do stdout při argumentu --
@@ -158,7 +163,7 @@ int main(int argc, char **argv) {
                     // Znovuvytvoření konfigurace a PDF
                     SSPS_DOHODA_Konfigurace_TOML(fp, &toml_konfigurace, SOUBOR, razeni);
                     //fprintf(stderr, "\n%s\n", toml_konfigurace.kde);
-                    SSPS_DOHODA_SepsatDohodu(toml_konfigurace, &pdf);
+                    SSPS_DOHODA_SepsatDohodu(toml_konfigurace, &pdf, binderova_argument);
                     if (pdf_do_stdout == true)
                         ulozit_do_stdout(&pdf);
                     else

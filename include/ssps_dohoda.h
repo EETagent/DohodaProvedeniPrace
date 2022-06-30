@@ -1,3 +1,5 @@
+#include<stdbool.h>
+
 /*
  * Hodinové ohodnocení
  */
@@ -94,7 +96,7 @@ int SSPS_DOHODA_Konfigurace_Free(SSPS_DOHODA_Konfigurace *konfigurace);
 /*
  * Funkce pro vytvoření dohody ve formě PDF, výstup uložen do pdf_in
  */
-int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, SSPS_DOHODA_PDF *pdf_in);
+int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, SSPS_DOHODA_PDF *pdf_in, bool zastupkyne_reditele_legacy);
 
 /*
  * Funkce pro vypsání celkového počtu odpracovaných hodin
