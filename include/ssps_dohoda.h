@@ -14,6 +14,11 @@ typedef HPDF_Doc SSPS_DOHODA_PDF;
 #define PDF_SOUBOR_PREDLOZKA u8"DPP"
 
 /*
+ * E-mail zástupce ředitele na výkaz 
+ */
+#define ZASTUPCE_REDITELE u8"aramis.tochjan@ssps.cz"
+
+/*
  * Struktura s konfigurací PDF
  */
 typedef struct SSPS_DOHODA_Konfigurace {
@@ -21,6 +26,8 @@ typedef struct SSPS_DOHODA_Konfigurace {
     char *nazev;
     // V jakém městě byla dohoda podepsána
     char *kde;
+    // Zástupce ředitele
+    char *zastupce;
     // Jméno zaměstnance
     char *jmeno;
     // Rodné číslo zaměstnance

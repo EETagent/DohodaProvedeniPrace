@@ -55,6 +55,7 @@ PŘÍKLADY:
 [dohoda]
 nazev = "Program na tovrbu výkazů pro dohody o provedení práce"
 kde = "V Liberci"
+zastupce_email = "aramis.tochjan@ssps.cz"
 
 [zamestnanec]
 jmeno = "Franta Novák"
