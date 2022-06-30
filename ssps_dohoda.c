@@ -122,6 +122,7 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
     toml_table_t *dohoda_tabulka = toml_table_in(toml, u8"dohoda");
     if (!dohoda_tabulka)
         toml_error_handler(u8"Pole [dohoda] nenalezeno");
+
     // Část [zamestnanec]
     toml_table_t *zamestnanec_tabulka = toml_table_in(toml, u8"zamestnanec");
     if (!zamestnanec_tabulka)
@@ -130,11 +131,13 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
     // Hodnota název v části [dohoda]
     toml_datum_t nazev_hodnota = toml_string_in(dohoda_tabulka, u8"nazev");
     if (!nazev_hodnota.ok)
-        toml_error_handler(u8"Položká nazev = nenalezena");
+        toml_error_handler(u8"Položká nazev v sekci [dohoda] nenalezena");
     // Hodnota kde v části [dohoda]
     toml_datum_t kde_hodnota = toml_string_in(dohoda_tabulka, u8"kde");
     if (!kde_hodnota.ok)
-        toml_error_handler(u8"Položká kde = nenalezena");
+        toml_error_handler(u8"Položká kde v sekci [dohoda] nenalezena");
+    // Hodnota zastupce_email v části [dohoda]
+    toml_datum_t zastupce_email_hodnota = toml_string_in(dohoda_tabulka, u8"zastupce_email");
 
     // Hodnoty v části [zamestnanec]
     // zamestnanec_polozky[0] = jmeno
@@ -198,6 +201,15 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
     // Údaje o dohodě
     konf.nazev = strndup(nazev_hodnota.u.s, utf8_bytelen_podle_poctu_znaku(nazev_hodnota.u.s, 55));
     konf.kde = strndup(kde_hodnota.u.s, utf8_bytelen_podle_poctu_znaku(kde_hodnota.u.s, 30));
+
+    // Údaje o zástupci ředitele
+    if (zastupce_email_hodnota.ok) {
+        konf.zastupce = strndup(zastupce_email_hodnota.u.s,  utf8_bytelen_podle_poctu_znaku(zastupce_email_hodnota.u.s, 30));
+    // Definovaný e-mail na zástupce ředitele
+    } else {
+        konf.zastupce = strdup(ZASTUPCE_REDITELE);
+    }
+
     // Údaje o zaměstnanci
     konf.jmeno = strndup(zamestnanec_polozky[0].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[0].u.s, 50));
     konf.rodne_cislo = strndup(zamestnanec_polozky[1].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[1].u.s, 25));
@@ -238,7 +250,7 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
 // Vyčištění paměti alokované v rámci struktury SSPS_DOHODA_Konfigurace
 int SSPS_DOHODA_Konfigurace_Free(SSPS_DOHODA_Konfigurace *konfigurace) {
     free(konfigurace->datum); free(konfigurace->cinnost); free(konfigurace->poznamka); free(konfigurace->hodiny);
-    free(konfigurace->nazev); free(konfigurace->kde);
+    free(konfigurace->nazev); free(konfigurace->kde); free(konfigurace->zastupce);
     free(konfigurace->jmeno); free(konfigurace->adresa); free(konfigurace->rodne_cislo); free(konfigurace->misto_narozeni);
     free(konfigurace->banka); free(konfigurace->pojistovna);
     return 0;
@@ -388,9 +400,13 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc 
                       u8"Kompletně vyplněný a podepsaný výkaz je nutné odevzdat vždy do 26. v měsíci");
     HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 780,
                       u8"Výkaz za prosinec - do 20. prosince");
-    HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 800,
-                      u8"Vždy lze (po řádném vyplnění a podepsání) zaslat jako sken na: dita.binderova@ssps.cz");
 
+    const char *odeslani_text_placeholder = u8"Vždy lze (po řádném vyplnění a podepsání) zaslat jako sken na: ";
+    char *odeslani_text = malloc(strlen(odeslani_text_placeholder) + strlen(toml_konfigurace.zastupce) + 1);
+    strcpy(odeslani_text, odeslani_text_placeholder); strcat(odeslani_text, toml_konfigurace.zastupce);
+    HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 800, odeslani_text);
+    free(odeslani_text);
+    
     *pdf_in = pdf;
 
     return 0;
