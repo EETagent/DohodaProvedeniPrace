@@ -43,15 +43,16 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s -Os")
 set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/external)
 
 # libharu - Knihovna pro tvorbu PDF
-if (CMAKE_BUILD_TYPE EQUAL "RELEASE")
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
     set(LIBHARU_ARGUMENTS -DCMAKE_BUILD_TYPE=Release)
 else()
     set(LIBHARU_ARGUMENTS -DCMAKE_BUILD_TYPE=Debug)
 endif()
+
 ExternalProject_Add(libharu
         GIT_REPOSITORY https://github.com/libharu/libharu
         #GIT_TAG origin/devel
-        CMAKE_ARGS ${LIBHARU_ARGUMENTS} -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
+        CMAKE_ARGS ${LIBHARU_ARGUMENTS} -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DBUILD_SHARED_LIBS=Off
         )
 
 # tomlc99 - Knihovna pro zpracování TOML
@@ -76,7 +77,7 @@ if (BUILD_CLI)
     add_executable(${EXECUTABLE_NAME} cli/main.c)
     set(LINK_LIBRARIES
             ssps_dohoda
-            hpdfs
+            hpdf
             toml
             m
             ${ZLIB_LIBRARIES})
@@ -89,7 +90,7 @@ if (BUILD_GUI)
     add_executable(${EXECUTABLE_NAME}_gui gui/main.c)
     set(LINK_LIBRARIES
             ssps_dohoda
-            hpdfs
+            hpdf
             toml
             m
             ${ZLIB_LIBRARIES}
