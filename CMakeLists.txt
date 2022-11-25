@@ -5,6 +5,12 @@ include(ExternalProject)
 # C23
 set(CMAKE_C_STANDARD 23)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+      "Release"
+      FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
+
 # -DBUILD_CLI=
 option(BUILD_CLI "Kompilace konzolového rozhraní" ON)
 # -DBUILD_GUI=
