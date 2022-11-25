@@ -13,7 +13,7 @@ add_executable (ssps_dohoda_test_velikost test-velikost.c)
 
 set(LINK_LIBRARIES
         ssps_dohoda
-        hpdfs
+        hpdf
         toml
         m
         ${ZLIB_LIBRARIES})
