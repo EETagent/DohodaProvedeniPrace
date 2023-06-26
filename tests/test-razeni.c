@@ -13,7 +13,7 @@
 
 int main(void) {
     // Hash nepoškozeného PDF
-    const char pdf_hash_reference[33] = "4ae4a5e69dfc7367214ff0fd44634e25";
+    const char pdf_hash_reference[33] = "0a34b5257c828e1a9f33ef29773f1bf8";
     char pdf_hash_opravodvy[33] = {'\0'};;
     char temp[4];
 

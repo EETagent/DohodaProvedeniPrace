@@ -59,6 +59,7 @@ zastupce_email = "aramis.tochjan@ssps.cz"
 
 [zamestnanec]
 jmeno = "Franta Novák"
+email = "franta.novak@ssps.cz"
 rodne_cislo = ""
 banka = ""
 misto_narozeni = "Praha"

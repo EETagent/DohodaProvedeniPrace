@@ -30,6 +30,8 @@ typedef struct SSPS_DOHODA_Konfigurace {
     char *zastupce;
     // Jméno zaměstnance
     char *jmeno;
+    // E-mail zaměstnance
+    char *email;
     // Rodné číslo zaměstnance
     char *rodne_cislo;
     // Bankovní účet zaměstnance
