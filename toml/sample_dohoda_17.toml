@@ -1,10 +1,11 @@
 [dohoda]
-nazev = "Program na tovrbu dohod o provedení práce"
+nazev = "Program na tvorbu dohod o provedení práce"
 kde = "V Liberci"
 zastupce_email = "dita.binderova@ssps.cz"
 
 [zamestnanec]
 jmeno = "Franta Novák"
+email = "franta.novak@ssps.cz"
 rodne_cislo = ""
 banka = ""
 misto_narozeni = "Praha"

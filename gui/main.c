@@ -3,6 +3,8 @@
 #include <string.h> // Práce s textovými řetězci
 #include "dohodaprovedeniprace.ui.h" // XML s grafickým rozhraním
 
+// TODO: Sync with CLI, e-mail is now required property
+
 // Pole ukazatelů pro uložení jednotlivých vstupů
 GObject *dohoda_vlastnosti_entry[9];
 GObject *dohoda_datum_entry[15];

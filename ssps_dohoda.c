@@ -30,6 +30,7 @@
 // Popisky
 #define NAZEV_TEXT u8"Název dohody: "
 #define JMENO_TEXT u8"Jméno, příjmení zaměstnance: "
+#define EMAIL_TEXT u8"E-mail: "
 #define RODNECISLO_TEXT u8"Rodné číslo: "
 #define BANKA_TEXT u8"Č. účtu/kód banky: "
 #define MISTO_TEXT u8"Místo narození: "
@@ -37,7 +38,7 @@
 #define POJISTOVNA_TEXT u8"Zdravotní pojištovna - název a číslo: "
 
 #define POPISEK_ODSAZENI 160
-#define POPISEK_ROZESTUPY 30
+#define POPISEK_ROZESTUPY 25
 
 // Výpočet odsazení pro umístění do levé poloviny dokumentu
 #define LEVA_POLOVINA_DOKUMENTU(stranka) HPDF_Page_GetWidth(stranka) / 8
@@ -141,13 +142,14 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
 
     // Hodnoty v části [zamestnanec]
     // zamestnanec_polozky[0] = jmeno
-    // zamestnanec_polozky[1] = rodne_cislo
-    // zamestnanec_polozky[2] = banka
-    // zamestnanec_polozky[3] = misto_narozeni
-    // zamestnanec_polozky[4] = adresa
-    // zamestnanec_polozky[5] = pojistovna
-    toml_datum_t zamestnanec_polozky[6];
-    for (int i = 0; i < 6; i++) {
+    // zamestnanec_polozky[1] = email
+    // zamestnanec_polozky[2] = rodne_cislo
+    // zamestnanec_polozky[3] = banka
+    // zamestnanec_polozky[4] = misto_narozeni
+    // zamestnanec_polozky[5] = adresa
+    // zamestnanec_polozky[6] = pojistovna
+    toml_datum_t zamestnanec_polozky[7];
+    for (int i = 0; i < 7; i++) {
         const char *key = toml_key_in(zamestnanec_tabulka, i);
         if (!key)
             toml_error_handler(u8"V tabulce [zamestnanec] nebyly nalezeny všechny položky");
@@ -212,11 +214,12 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
 
     // Údaje o zaměstnanci
     konf.jmeno = strndup(zamestnanec_polozky[0].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[0].u.s, 50));
-    konf.rodne_cislo = strndup(zamestnanec_polozky[1].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[1].u.s, 25));
-    konf.banka = strndup(zamestnanec_polozky[2].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[2].u.s, 25));
-    konf.misto_narozeni = strndup(zamestnanec_polozky[3].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[3].u.s, 55));
-    konf.adresa = strndup(zamestnanec_polozky[4].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[4].u.s, 55));
-    konf.pojistovna = strndup(zamestnanec_polozky[5].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[5].u.s, 45));
+    konf.email = strndup(zamestnanec_polozky[1].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[1].u.s, 50));
+    konf.rodne_cislo = strndup(zamestnanec_polozky[2].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[2].u.s, 25));
+    konf.banka = strndup(zamestnanec_polozky[3].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[3].u.s, 25));
+    konf.misto_narozeni = strndup(zamestnanec_polozky[4].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[4].u.s, 55));
+    konf.adresa = strndup(zamestnanec_polozky[5].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[5].u.s, 55));
+    konf.pojistovna = strndup(zamestnanec_polozky[6].u.s, utf8_bytelen_podle_poctu_znaku(zamestnanec_polozky[6].u.s, 45));
 
     // Údaje o jednotlivých činnostech
     for (int i = 0; i < konf.len; i++) {
@@ -231,7 +234,7 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
     // Vyčištění paměti zabrané stringy ve struktuře
     free(nazev_hodnota.u.s);
     free(kde_hodnota.u.s);
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 7; i++) {
         free(zamestnanec_polozky[i].u.s);
     }
     for (int i = 0; i < prace_velikost; i++) {
@@ -251,7 +254,7 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
 int SSPS_DOHODA_Konfigurace_Free(SSPS_DOHODA_Konfigurace *konfigurace) {
     free(konfigurace->datum); free(konfigurace->cinnost); free(konfigurace->poznamka); free(konfigurace->hodiny);
     free(konfigurace->nazev); free(konfigurace->kde); free(konfigurace->zastupce);
-    free(konfigurace->jmeno); free(konfigurace->adresa); free(konfigurace->rodne_cislo); free(konfigurace->misto_narozeni);
+    free(konfigurace->jmeno); free(konfigurace->email); free(konfigurace->adresa); free(konfigurace->rodne_cislo); free(konfigurace->misto_narozeni);
     free(konfigurace->banka); free(konfigurace->pojistovna);
     return 0;
 }
@@ -344,11 +347,11 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc 
 
     // DRY
     // Popisky přes for loop
-    char *ukazatele_hodnoty[6] = {toml_konfigurace.nazev, toml_konfigurace.jmeno, toml_konfigurace.rodne_cislo,
+    char *ukazatele_hodnoty[7] = {toml_konfigurace.nazev, toml_konfigurace.jmeno, toml_konfigurace.rodne_cislo, toml_konfigurace.email, 
                                   toml_konfigurace.misto_narozeni, toml_konfigurace.adresa,
                                   toml_konfigurace.pojistovna};
-    char *ukazatele_popisky[6] = {NAZEV_TEXT, JMENO_TEXT, RODNECISLO_TEXT, MISTO_TEXT, ADRESA_TEXT, POJISTOVNA_TEXT};
-    for (int i = 0; i < 6; ++i) {
+    char *ukazatele_popisky[7] = {NAZEV_TEXT, JMENO_TEXT, RODNECISLO_TEXT, EMAIL_TEXT, MISTO_TEXT, ADRESA_TEXT, POJISTOVNA_TEXT};
+    for (int i = 0; i < 7; ++i) {
         SSPS_Page_AddPopisek(pdf_strana, ukazatele_hodnoty[i], ukazatele_popisky[i],
                              LEVA_POLOVINA_DOKUMENTU(pdf_strana),
                              HPDF_Page_GetHeight(pdf_strana) - POPISEK_ODSAZENI - POPISEK_ROZESTUPY * i);
