@@ -149,11 +149,32 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
     // zamestnanec_polozky[5] = adresa
     // zamestnanec_polozky[6] = pojistovna
     toml_datum_t zamestnanec_polozky[7];
+
+    const char* toml_keys_zamestnanec_template[7] = {
+        u8"jmeno",
+        u8"email",
+        u8"rodne_cislo",
+        u8"banka",
+        u8"misto_narozeni",
+        u8"adresa",
+        u8"pojistovna"
+    };
+
     for (int i = 0; i < 7; i++) {
         const char *key = toml_key_in(zamestnanec_tabulka, i);
         if (!key)
             toml_error_handler(u8"V tabulce [zamestnanec] nebyly nalezeny všechny položky");
-        zamestnanec_polozky[i] = toml_string_in(zamestnanec_tabulka, key);
+
+        int found = 0; 
+        // Porovnání klíče s klíči v šabloně, pokud se shodují, uloží se hodnota do správného indexu
+        for (int j = 0; j < 7; j++) {
+            if (strcmp(key, toml_keys_zamestnanec_template[j]) == 0) {
+                zamestnanec_polozky[j] = toml_string_in(zamestnanec_tabulka, key);
+                found = 1;
+            }
+        }
+        if (found == 0)
+            toml_error_handler(u8"V tabulce [zamestnanec] nebyly nalezeny všechny položky");
     }
 
     // List částí [[prace]], není znám jejich přesný počet
@@ -171,13 +192,31 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
     // prace_polozky[1][0] = datum v druhé části [[prace]]
     // atd ...
     toml_datum_t prace_polozky[prace_velikost][4];
+
+    const char* toml_keys_prace_template[4] = {
+        u8"datum",
+        u8"cinnost",
+        u8"hodiny",
+        u8"poznamka",
+    };
+
     for (int i = 0; i < prace_velikost; i++) {
         toml_table_t *tabulka = toml_table_at(prace_tabulky, i);
         for (int o = 0; o < 4; o++) {
             const char *key = toml_key_in(tabulka, o);
             if (!key)
                 toml_error_handler(u8"V tabulce [[prace]] nebyly nalezeny všechny položky");
-            prace_polozky[i][o] = toml_string_in(tabulka, key);
+            
+            int found = 0; 
+            // Porovnání klíče s klíči v šabloně, pokud se shodují, uloží se hodnota do správného indexu
+            for (int j = 0; j < 4; j++) {
+                if (strcmp(key, toml_keys_prace_template[j]) == 0) {
+                    prace_polozky[i][j] = toml_string_in(tabulka, key);
+                    found = 1;
+                }
+            }
+            if (found == 0)
+                toml_error_handler(u8"V tabulce [[prace]] nebyly nalezeny všechny položky");
         }
     }
 
