@@ -100,10 +100,23 @@ int SSPS_DOHODA_Konfigurace_TOML(void *vstup, SSPS_DOHODA_Konfigurace *konfigura
  * Vyčištění paměti alokované v rámci struktury SSPS_DOHODA_Konfigurace
  */
 int SSPS_DOHODA_Konfigurace_Free(SSPS_DOHODA_Konfigurace *konfigurace);
+
 /*
  * Funkce pro vytvoření dohody ve formě PDF, výstup uložen do pdf_in
  */
 int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, SSPS_DOHODA_PDF *pdf_in);
+
+/*
+ * Funkce pro vypsání celé dohody do stringu
+ */
+int SSPS_DOHODA_String(SSPS_DOHODA_Konfigurace toml_konfigurace, char** output);
+
+/*
+ * Funkce pro zapsaní dohody jako QR kód
+ */
+#ifdef QR_CODE
+int SSPS_DOHODA_QR(SSPS_DOHODA_Konfigurace toml_konfigurace, char *path);
+#endif
 
 /*
  * Funkce pro vypsání celkového počtu odpracovaných hodin

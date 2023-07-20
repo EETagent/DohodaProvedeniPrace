@@ -17,9 +17,11 @@
 // Nápověda k programu
 void napoveda(char *program);
 // Uložení PDF do stdout
-int ulozit_do_stdout (SSPS_DOHODA_PDF *pdf);
+int ulozit_pdf_do_stdout (SSPS_DOHODA_PDF *pdf);
+// Název souboru
+char* nazev_souboru (SSPS_DOHODA_Konfigurace *toml_konfigurace);
 // Uložení PDF do souboru
-int ulozit_do_souboru (SSPS_DOHODA_PDF *pdf, SSPS_DOHODA_Konfigurace *toml_konfigurace);
+int ulozit_pdf_do_souboru (SSPS_DOHODA_PDF *pdf, char *nazev_souboru);
 // Chyby
 void cli_error_handler(char *error);
 
@@ -118,13 +120,16 @@ int main(int argc, char **argv) {
     // ./dohoda_ssps -- < data.toml > moje.pdf
     if (strcmp(argv[--argc], "--") == 0) {
         pdf_do_stdout = true;
-        if (ulozit_do_stdout(&pdf) != 0)
+        if (ulozit_pdf_do_stdout(&pdf) != 0)
             cli_error_handler("Nelze vypsat do stdout");
     }
 
     // Jinak uložit do souboru
-    if (pdf_do_stdout == false)
-        ulozit_do_souboru(&pdf, &toml_konfigurace);
+    if (pdf_do_stdout == false) {
+        char *nazev_pdf = nazev_souboru(&toml_konfigurace);
+        ulozit_pdf_do_souboru(&pdf, nazev_pdf);
+        free(nazev_pdf);
+    }
 
     if (watch_argument == true) {
         #if defined(WIN32) || defined(__APPLE__)
@@ -161,8 +166,11 @@ int main(int argc, char **argv) {
                     SSPS_DOHODA_SepsatDohodu(toml_konfigurace, &pdf);
                     if (pdf_do_stdout == true)
                         ulozit_do_stdout(&pdf);
-                    else
-                        ulozit_do_souboru(&pdf, &toml_konfigurace);
+                    else {
+                        char *nazev_pdf = nazev_souboru(&toml_konfigurace);
+                        ulozit_do_souboru(&pdf, nazev_pdf);
+                        free(nazev_pdf);
+                    }
                     fclose(fp);
                 }
                 // Byl-li soubor smazán, přemístěn, nebo se s ním ztratilo spojení
@@ -179,6 +187,18 @@ int main(int argc, char **argv) {
         close(fd);
         #endif
     }
+
+    char *multilineString = NULL;
+
+    //SSPS_DOHODA_String(toml_konfigurace, &multilineString);
+
+    char *png_nazev = nazev_souboru(&toml_konfigurace);
+    strcat(png_nazev, u8".png");
+    
+    //SSPS_DOHODA_QR(toml_konfigurace, png_nazev);
+
+    free(multilineString);
+
 
     if (setjmp(jmp)) {
         if (soubor_argument)
@@ -209,19 +229,27 @@ void napoveda (char *program) {
     fprintf(stderr, u8"\t%s -n -f /home/thinkpad/vykaz.toml -- > dohoda.pdf\n", program);
 }
 
-int ulozit_do_souboru (SSPS_DOHODA_PDF *pdf, SSPS_DOHODA_Konfigurace *toml_konfigurace) {
+char* nazev_souboru (SSPS_DOHODA_Konfigurace *toml_konfigurace) {
     // Alokování paměti pro řetězec o velikosti předložky, příjmení a rezervy na .pdf
-    char *pdf_soubor = malloc(strlen(PDF_SOUBOR_PREDLOZKA) + strlen(toml_konfigurace->jmeno) + 5);
-    strcpy(pdf_soubor, PDF_SOUBOR_PREDLOZKA);
+    char *soubor = malloc(strlen(PDF_SOUBOR_PREDLOZKA) + strlen(toml_konfigurace->jmeno) + 5);
+    strcpy(soubor, PDF_SOUBOR_PREDLOZKA);
     // Rozdělení jména
-    strtok(toml_konfigurace->jmeno, " ");
+    char *jmeno = strdup(toml_konfigurace->jmeno);
+    strtok(jmeno, " ");
     char *prijmeni = strtok(NULL, " ");
     // V případě že existuje nějaký výstup
     if (prijmeni) {
         // _Jungmann třeba
-        strcat(pdf_soubor, u8"_");
-        strcat(pdf_soubor, prijmeni);
+        strcat(soubor, u8"_");
+        strcat(soubor, prijmeni);
     }
+    free(jmeno);
+    return soubor;
+}
+
+int ulozit_pdf_do_souboru (SSPS_DOHODA_PDF *pdf, char *nazev_souboru) {
+    // Alokování paměti pro řetězec o velikosti předložky, příjmení a rezervy na .pdf
+    char *pdf_soubor = strdup(nazev_souboru);
     // Přidání koncovky
     strcat(pdf_soubor, u8".pdf");
     // Uložení PDF do souboru
@@ -231,7 +259,7 @@ int ulozit_do_souboru (SSPS_DOHODA_PDF *pdf, SSPS_DOHODA_Konfigurace *toml_konfi
     return 0;
 }
 
-int ulozit_do_stdout (SSPS_DOHODA_PDF *pdf) {
+int ulozit_pdf_do_stdout (SSPS_DOHODA_PDF *pdf) {
     // Uložení PDF do paměti
     HPDF_SaveToStream(*pdf);
     // Přetočení PDF streamu na začátek (pro postupné vypsání do stdout)

@@ -3,7 +3,8 @@
         {
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/build/external/include"
+                "${workspaceFolder}/build/external/include",
+                "/opt/homebrew/include"
             ],
             "defines": [],
             "macFrameworkPath": [
@@ -12,7 +13,7 @@
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c23",
             "cppStandard": "c++23",
-            //"intelliSenseMode": "macos-clang-arm64"
+            "intelliSenseMode": "macos-clang-arm64"
         }
     ],
     "version": 4

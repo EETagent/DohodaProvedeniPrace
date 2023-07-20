@@ -4,7 +4,10 @@
 
 #include <hpdf.h> // libharu, tvorba PDF
 #include <toml.h> // tomlc99, parsování TOML
-
+#ifdef QR_CODE
+#include <qrencode.h> // libqrencode, tvorba QR kódu
+#include <qrcode.h> 
+#endif
 #include <hpdf_ttf_mem.h> // Funkce pro načítání TTF souborů z paměti
 #include <liberationsans.h> // Liberation Sans Regular a Bold jako byty v C hlavičce, xxd -i font.ttf > header.h
 
@@ -331,6 +334,89 @@ int SSPS_DOHODA_PocetPenez(SSPS_DOHODA_Konfigurace toml_konfigurace, float *peni
     return 0;
 }
 
+int SSPS_DOHODA_String(SSPS_DOHODA_Konfigurace toml_konfigurace, char** output) {
+   size_t totalLength = strlen(NAZEV_TEXT) + strlen(toml_konfigurace.nazev) +
+                         strlen(JMENO_TEXT) + strlen(toml_konfigurace.jmeno) +
+                         strlen(EMAIL_TEXT) + strlen(toml_konfigurace.email) +
+                         strlen(RODNECISLO_TEXT) + strlen(toml_konfigurace.rodne_cislo) +
+                         strlen(BANKA_TEXT) + strlen(toml_konfigurace.banka) +
+                         strlen(MISTO_TEXT) + strlen(toml_konfigurace.misto_narozeni) +
+                         strlen(ADRESA_TEXT) + strlen(toml_konfigurace.adresa) +
+                         strlen(POJISTOVNA_TEXT) + strlen(toml_konfigurace.pojistovna) +
+                         9;  // Additional characters for newlines and null terminator
+
+
+    // Zvětšení celkové velikosti o práce + rezerva
+    for (int i = 0; i < toml_konfigurace.len; i++) {
+        totalLength += strlen(toml_konfigurace.datum[i]) + strlen(toml_konfigurace.cinnost[i]) +
+                       strlen(toml_konfigurace.hodiny[i]) + strlen(toml_konfigurace.poznamka[i]) + 13;
+    }
+
+    // Rezerva, newliny
+    totalLength += 10;
+
+    char* string = (char*)malloc(totalLength * sizeof(char));
+
+    if (string == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return 1;
+    }
+
+    // Build the multiline string
+    snprintf(string, totalLength, "%s%s\n%s%s\n%s%s\n%s%s\n%s%s\n%s%s\n%s%s\n%s%s\n",
+             NAZEV_TEXT, toml_konfigurace.nazev,
+             JMENO_TEXT, toml_konfigurace.jmeno,
+             EMAIL_TEXT, toml_konfigurace.email,
+             RODNECISLO_TEXT, toml_konfigurace.rodne_cislo,
+             BANKA_TEXT, toml_konfigurace.banka,
+             MISTO_TEXT, toml_konfigurace.misto_narozeni,
+             ADRESA_TEXT, toml_konfigurace.adresa,
+             POJISTOVNA_TEXT, toml_konfigurace.pojistovna);
+
+    strcat(string, "\n\n");
+
+    for (int i = 0; i < toml_konfigurace.len; i++) {
+        strcat(string, toml_konfigurace.datum[i]);
+        strcat(string, " | ");
+        strcat(string, toml_konfigurace.cinnost[i]);
+        strcat(string, " | ");
+        strcat(string, toml_konfigurace.hodiny[i]);
+        // only add a note if it exists
+        if (toml_konfigurace.poznamka[i][0] != '\0') {
+            strcat(string, " | ");
+            strcat(string, toml_konfigurace.poznamka[i]);
+        }
+
+        strcat(string, "\n");
+    }
+
+    // TODO: Optimize this, use output directly
+    *output = strdup(string);
+
+    free(string);
+
+    return 0;
+}
+
+
+#ifdef QR_CODE
+int SSPS_DOHODA_QR(SSPS_DOHODA_Konfigurace toml_konfigurace, char *path) {
+    char* string;
+    if (SSPS_DOHODA_String(toml_konfigurace, &string) != 0)
+        return 1;
+
+    QRcode *qr = qrEncodeString(string);
+
+    qrWritePNG(qr, path);
+
+    free(string);
+    
+    QRcode_free(qr);
+
+    return 0;
+}
+#endif
+
 // Funkce pro vytvoření dohody ve formě PDF, výstup uložen do pdf_in
 int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc *pdf_in) {
 
@@ -446,7 +532,7 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, HPDF_Doc 
     const char *odeslani_text_placeholder = u8"Vždy lze (po řádném vyplnění a podepsání) zaslat jako sken na: ";
     char *odeslani_text = malloc(strlen(odeslani_text_placeholder) + strlen(toml_konfigurace.zastupce) + 1);
     strcpy(odeslani_text, odeslani_text_placeholder); strcat(odeslani_text, toml_konfigurace.zastupce);
-    HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 800, odeslani_text);
+    HPDF_Page_AddText(pdf_strana, LEVA_POLOVINA_DOKUMENTU(pdf_strana), HPDF_Page_GetHeight(pdf_strana) - 800, odeslani_text);   
     free(odeslani_text);
     
     *pdf_in = pdf;

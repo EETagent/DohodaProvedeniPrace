@@ -17,6 +17,8 @@ option(BUILD_CLI "Kompilace konzolového rozhraní" ON)
 option(BUILD_GUI "Kompilace GTK4 grafického rozhraní" OFF)
 # -dBUILD_TESTS=
 option(BUILD_TESTS "Kompilace testů" OFF)
+# -dQR_CODE=
+option(QR_CODE "Povolit podporu pro QR kódy" OFF)
 
 if (BUILD_TESTS)
     # Testy
@@ -42,17 +44,25 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s -Os")
 # Složka pro instalaci zkompilovaných závislostí
 set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/external)
 
-# libharu - Knihovna pro tvorbu PDF
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(LIBHARU_ARGUMENTS -DCMAKE_BUILD_TYPE=Release)
+    set(BUILD_ARGUMENTS -DCMAKE_BUILD_TYPE=Release)
 else()
-    set(LIBHARU_ARGUMENTS -DCMAKE_BUILD_TYPE=Debug)
+    set(BUILD_ARGUMENTS -DCMAKE_BUILD_TYPE=Debug)
 endif()
 
+if (QR_CODE)
+    find_package(PNG REQUIRED)
+    ExternalProject_Add(libqrencode
+            GIT_REPOSITORY https://github.com/fukuchi/libqrencode
+            CMAKE_ARGS ${BUILD_ARGUMENTS} -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DWITHOUT_PNG=No -DBUILD_SHARED_LIBS=Off -DWITH_TOOLS=Off
+            )
+endif ()
+
+# libharu - Knihovna pro tvorbu PDF
 ExternalProject_Add(libharu
         GIT_REPOSITORY https://github.com/libharu/libharu
         #GIT_TAG origin/devel
-        CMAKE_ARGS ${LIBHARU_ARGUMENTS} -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DBUILD_SHARED_LIBS=Off
+        CMAKE_ARGS ${BUILD_ARGUMENTS} -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DBUILD_SHARED_LIBS=Off
         )
 
 # tomlc99 - Knihovna pro zpracování TOML
@@ -65,12 +75,19 @@ ExternalProject_Add(libtoml
         CONFIGURE_COMMAND ""
         )
 
-include_directories(${EXTERNAL_INSTALL_LOCATION}/include ${CMAKE_SOURCE_DIR}/include)
+include_directories(${EXTERNAL_INSTALL_LOCATION}/include ${CMAKE_SOURCE_DIR}/include ${ZLIB_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS}) 
 link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
 
 # Knihovna pro vytváření SSPŠ dohod o provedení práce
 add_library(ssps_dohoda STATIC ssps_dohoda.c)
 add_dependencies(ssps_dohoda libharu libtoml)
+
+if (QR_CODE)
+    add_library(qrcode STATIC qrcode.c)
+    add_dependencies(qrcode libqrencode)
+    set (QR_LIBRARIES qrcode qrencode ${PNG_LIBRARIES})
+    add_compile_definitions(QR_CODE)
+endif ()
 
 # Pokud je povoleno kompilování CLI rozhraní
 if (BUILD_CLI)
@@ -80,6 +97,7 @@ if (BUILD_CLI)
             hpdf
             toml
             m
+            ${QR_LIBRARIES}
             ${ZLIB_LIBRARIES})
     target_link_libraries(${EXECUTABLE_NAME} ${LINK_LIBRARIES})
     install(TARGETS ${EXECUTABLE_NAME} DESTINATION bin)
@@ -93,6 +111,7 @@ if (BUILD_GUI)
             hpdf
             toml
             m
+            ${QR_LIBRARIES}
             ${ZLIB_LIBRARIES}
             ${GTK4_LIBRARIES})
     target_link_libraries(${EXECUTABLE_NAME}_gui ${LINK_LIBRARIES})
