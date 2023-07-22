@@ -112,10 +112,10 @@ int SSPS_DOHODA_SepsatDohodu(SSPS_DOHODA_Konfigurace toml_konfigurace, SSPS_DOHO
 int SSPS_DOHODA_String(SSPS_DOHODA_Konfigurace toml_konfigurace, char** output);
 
 /*
- * Funkce pro zapsaní dohody jako QR kód
+ * Funkce pro přidání QR kódu do PDF
  */
 #ifdef QR_CODE
-int SSPS_DOHODA_QR(SSPS_DOHODA_Konfigurace toml_konfigurace, char *path);
+int SSPS_DOHODA_Pridat_QR(SSPS_DOHODA_Konfigurace toml_konfigurace, char *path, SSPS_DOHODA_PDF *pdf_in);
 #endif
 
 /*

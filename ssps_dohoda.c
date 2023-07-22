@@ -398,10 +398,11 @@ int SSPS_DOHODA_String(SSPS_DOHODA_Konfigurace toml_konfigurace, char** output) 
     return 0;
 }
 
-
 #ifdef QR_CODE
-int SSPS_DOHODA_QR(SSPS_DOHODA_Konfigurace toml_konfigurace, char *path) {
-    char* string;
+int SSPS_DOHODA_Pridat_QR(SSPS_DOHODA_Konfigurace toml_konfigurace, char *path, SSPS_DOHODA_PDF *pdf_in) {
+    HPDF_Page page = HPDF_AddPage(*pdf_in);
+
+    char *string = NULL;
     if (SSPS_DOHODA_String(toml_konfigurace, &string) != 0)
         return 1;
 
@@ -410,8 +411,16 @@ int SSPS_DOHODA_QR(SSPS_DOHODA_Konfigurace toml_konfigurace, char *path) {
     qrWritePNG(qr, path);
 
     free(string);
+
+    HPDF_Image qr_image = HPDF_LoadPngImageFromFile2(*pdf_in, path); 
     
+    HPDF_REAL qr_image_width = HPDF_Image_GetWidth(qr_image);
+    HPDF_REAL qr_image_height = HPDF_Image_GetHeight(qr_image);
+
+    HPDF_Page_DrawImage(page, qr_image, 0, 0, qr_image_width,
+                    qr_image_height);
     QRcode_free(qr);
+    // TODO: Možná clean png z disku?
 
     return 0;
 }

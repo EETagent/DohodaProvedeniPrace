@@ -35,6 +35,7 @@ int main(int argc, char **argv) {
     bool soubor_argument = false;
     bool watch_argument = false;
     bool pdf_do_stdout = false;
+    bool qr_code = false;
 
     char *soubor;
 
@@ -42,7 +43,7 @@ int main(int argc, char **argv) {
     SSPS_DOHODA_Konfigurace toml_konfigurace;
     SSPS_DOHODA_RAZENI_POLOZEK razeni = NERADIT;
 
-    while ((argumenty = getopt(argc, argv, "hnstpwf:")) != -1) {
+    while ((argumenty = getopt(argc, argv, "hnstpqwf:")) != -1) {
         switch (argumenty) {
             // Vypsání nápovědy
             case 'h':
@@ -63,6 +64,10 @@ int main(int argc, char **argv) {
             // Vypsání celkové částky za odpracované hodiny
             case 'p':
                 pocet_penez_argument = true;
+                break;
+            // QR kód
+            case 'q':
+                qr_code = true;
                 break;
             // Sledování změn v souboru
             case 'w':
@@ -112,9 +117,30 @@ int main(int argc, char **argv) {
         return 0;
     }
 
+    #ifndef QR_CODE
+        if (qr_code == true) {
+            fprintf(stderr, u8"QR kód není dostupný, zkompilujte program s QR_CODE=1\n");
+            return 1;
+        }
+    #endif
+
     // Vytvoření PDF
     if (SSPS_DOHODA_SepsatDohodu(toml_konfigurace, &pdf) == 1)
         cli_error_handler(u8"Nepovedlo se vytvořit PDF");
+
+    
+    #ifdef QR_CODE
+        if (qr_code == true) {
+            char *qr_png_nazev = nazev_souboru(&toml_konfigurace);
+            strcat(qr_png_nazev, u8".png");
+            
+            printf(u8"Vytvářím QR kód: %s\n", qr_png_nazev);
+            SSPS_DOHODA_Pridat_QR(toml_konfigurace, qr_png_nazev, &pdf);
+
+            free(qr_png_nazev);
+        }
+    #endif
+
 
     // Vypsat do stdout při argumentu --
     // ./dohoda_ssps -- < data.toml > moje.pdf
@@ -165,10 +191,10 @@ int main(int argc, char **argv) {
                     //fprintf(stderr, "\n%s\n", toml_konfigurace.kde);
                     SSPS_DOHODA_SepsatDohodu(toml_konfigurace, &pdf);
                     if (pdf_do_stdout == true)
-                        ulozit_do_stdout(&pdf);
+                        ulozit_pdf_do_stdout(&pdf);
                     else {
                         char *nazev_pdf = nazev_souboru(&toml_konfigurace);
-                        ulozit_do_souboru(&pdf, nazev_pdf);
+                        ulozit_pdf_do_souboru(&pdf, nazev_pdf);
                         free(nazev_pdf);
                     }
                     fclose(fp);
@@ -187,18 +213,6 @@ int main(int argc, char **argv) {
         close(fd);
         #endif
     }
-
-    char *multilineString = NULL;
-
-    //SSPS_DOHODA_String(toml_konfigurace, &multilineString);
-
-    char *png_nazev = nazev_souboru(&toml_konfigurace);
-    strcat(png_nazev, u8".png");
-    
-    //SSPS_DOHODA_QR(toml_konfigurace, png_nazev);
-
-    free(multilineString);
-
 
     if (setjmp(jmp)) {
         if (soubor_argument)
@@ -221,7 +235,7 @@ int main(int argc, char **argv) {
 void napoveda (char *program) {
     fprintf(stderr, u8"DohodaProvedeniPrace (https://github.com/EETagent/DohodaProvedeniPrace)\n");
     fprintf(stderr, u8"Použití programu: %s [-hnstf] < soubor\n", program);
-    fprintf(stderr, u8"-h Vypsání této nápovědy\n-n Seřazení položek od nejnovější\n-s Seřazení položek od nejstarší\n-t Vypsat počet odpracovaných hodin\n-p Vypsat celkovou částku za odpracované hodiny\n-w Živé sledování změn v souboru - watch\n-f Cesta k souboru\n-- Vypsat PDF do stdout (Musí být na konci příkazu)\n");
+    fprintf(stderr, u8"-h Vypsání této nápovědy\n-n Seřazení položek od nejnovější\n-s Seřazení položek od nejstarší\n-t Vypsat počet odpracovaných hodin\n-p Vypsat celkovou částku za odpracované hodiny\n-q Vytvoření QR kódu\n-w Živé sledování změn v souboru - watch\n-f Cesta k souboru\n-- Vypsat PDF do stdout (Musí být na konci příkazu)\n");
     fprintf(stderr, u8"\nPŘÍKLADY:\n");
     fprintf(stderr, u8"\t%s < vykaz.toml\n", program);
     fprintf(stderr, u8"\t%s -s < vykaz.toml\n", program);
